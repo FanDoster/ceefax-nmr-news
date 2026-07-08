@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS — P300 SPORT</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .sp-title { color: var(--C); font-size: var(--font-size); line-height: var(--cell-h); padding: 10px 14px 0; }
+    .sp-sub { color: var(--G); font-size: 14px; padding: 2px 14px 6px; }
+    .sp-head, .sp-row {
+      display: flex;
+      align-items: baseline;
+      font-size: var(--font-size);
+      line-height: 21px;
+      padding: 0 14px;
+    }
+    .sp-head { color: var(--W); }
+    .sp-pos  { width: 3ch; text-align: right; color: var(--Y); flex-shrink: 0; }
+    .sp-team { flex: 1; padding-left: 10px; color: var(--C); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .sp-n    { width: 3ch; text-align: center; color: var(--W); flex-shrink: 0; }
+    .sp-gd   { width: 4ch; text-align: right; color: var(--W); flex-shrink: 0; }
+    .sp-pts  { width: 4ch; text-align: right; color: var(--Y); flex-shrink: 0; }
+    .sp-head .sp-team { color: var(--W); }
+    /* zone colours: Champions League places / relegation */
+    .sp-row.cl  .sp-team { color: var(--G); }
+    .sp-row.rel .sp-team { color: var(--R); }
+    .sp-msg { color: var(--Y); padding: 24px 14px; font-size: var(--font-size); }
+  </style>
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+    <div id="content"><div class="ceefax-loading">LOADING...</div></div>
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <!-- No Supabase — football data is from ESPN's public API (no key). -->
+  <script src="/common.js"></script>
+  <script>
+    CX.renderHeader('300', 'SPORT', 'FOOTBALL LEAGUE TABLE')
+    var stopScan = CX.scanPage('300')
+
+    var BASE = 'https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings'
+
+    function stat(entry, name) {
+      var s = entry.stats.filter(function (x) { return x.name === name })[0]
+      return s ? s.value : 0
+    }
+    function extract(res) {
+      var entries = ((res.children || [])[0] || {}).standings
+      entries = entries ? entries.entries : []
+      return { entries: entries, season: (res.season && res.season.displayName) || '', year: res.season && res.season.year }
+    }
+    function toRows(entries) {
+      var rows = entries.map(function (e) {
+        return {
+          rank: stat(e, 'rank'),
+          team: (e.team.shortDisplayName || e.team.displayName).toUpperCase(),
+          p: stat(e, 'gamesPlayed'), w: stat(e, 'wins'), d: stat(e, 'ties'), l: stat(e, 'losses'),
+          gd: stat(e, 'pointDifferential'), pts: stat(e, 'points'),
+        }
+      })
+      rows.sort(function (a, b) { return (a.rank || 99) - (b.rank || 99) })
+      return rows
+    }
+
+    function spFastext() {
+      CX.renderFastext([
+        { color: 'red',    label: 'HEADLINES', href: '/' },
+        { color: 'green',  label: 'WEATHER',   href: '/weather.html' },
+        { color: 'yellow', label: 'REFRESH',   href: '/sport.html' },
+      ])
+    }
+
+    ;(async function () {
+      var content = document.getElementById('content')
+
+      var data = null, season = '', complete = false
+      try {
+        var res = await Promise.all([fetch(BASE).then(function (r) { return r.json() }), CX.delay(1000)])
+        var cur = extract(res[0])
+        var played = cur.entries.reduce(function (s, e) { return s + stat(e, 'gamesPlayed') }, 0)
+        if (played === 0 && cur.year) {
+          // season not started — show last completed season's final table
+          var prev = await fetch(BASE + '?season=' + (cur.year - 1)).then(function (r) { return r.json() })
+          cur = extract(prev)
+          complete = true
+        }
+        data = toRows(cur.entries)
+        season = cur.season
+      } catch (e) { data = null }
+      stopScan()
+
+      if (!data || !data.length) {
+        CX.setStatus('SPORT OFF AIR')
+        content.innerHTML = '<div class="sp-msg">Table is off air.<br>Press REFRESH to try again.</div>'
+        spFastext()
+        return
+      }
+
+      var n = data.length
+      var rows = data.map(function (r) {
+        var zone = r.rank <= 4 ? ' cl' : (r.rank > n - 3 ? ' rel' : '')
+        var gd = (r.gd > 0 ? '+' : '') + r.gd
+        return '<div class="sp-row' + zone + '">' +
+          '<span class="sp-pos">' + r.rank + '</span>' +
+          '<span class="sp-team">' + CX.escapeHTML(r.team) + '</span>' +
+          '<span class="sp-n">' + r.p + '</span>' +
+          '<span class="sp-n">' + r.w + '</span>' +
+          '<span class="sp-n">' + r.d + '</span>' +
+          '<span class="sp-n">' + r.l + '</span>' +
+          '<span class="sp-gd">' + gd + '</span>' +
+          '<span class="sp-pts">' + r.pts + '</span>' +
+          '</div>'
+      }).join('')
+
+      content.innerHTML =
+        '<div class="sp-title">ENGLISH PREMIER LEAGUE</div>' +
+        '<div class="sp-sub">' + CX.escapeHTML(season) + (complete ? ' — FINAL TABLE' : '') + '</div>' +
+        '<div class="sp-head">' +
+          '<span class="sp-pos"></span><span class="sp-team">TEAM</span>' +
+          '<span class="sp-n">P</span><span class="sp-n">W</span><span class="sp-n">D</span>' +
+          '<span class="sp-n">L</span><span class="sp-gd">GD</span><span class="sp-pts">PTS</span>' +
+        '</div>' + rows
+
+      spFastext()
+    })()
+  </script>
+</body>
+</html>

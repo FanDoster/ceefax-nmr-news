@@ -135,8 +135,25 @@
     }).join('')
   }
 
+  // Generic Ceefax-style story graphics (blocky SVGs in /images/graphics).
+  var GRAPHICS = [
+    { name: 'Games controller', path: '/images/graphics/controller.svg' },
+    { name: 'Trophy / award',   path: '/images/graphics/trophy.svg' },
+    { name: 'Star',             path: '/images/graphics/star.svg' },
+    { name: 'Heart',            path: '/images/graphics/heart.svg' },
+    { name: 'Growth arrow',     path: '/images/graphics/growth.svg' },
+    { name: 'Leaf / nature',    path: '/images/graphics/leaf.svg' },
+    { name: 'Book / education',  path: '/images/graphics/book.svg' },
+    { name: 'Building / studio', path: '/images/graphics/building.svg' },
+    { name: 'Globe / world',    path: '/images/graphics/globe.svg' },
+    { name: 'Person',           path: '/images/graphics/person.svg' },
+    { name: 'Computer',         path: '/images/graphics/monitor.svg' },
+    { name: 'Money / funding',  path: '/images/graphics/money.svg' },
+  ]
+
   window.CX = {
     db: db,
+    GRAPHICS: GRAPHICS,
     escapeHTML: escapeHTML,
     delay: delay,
     nmrLogoSVG: nmrLogoSVG,

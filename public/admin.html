@@ -100,6 +100,8 @@
     function renderManager() {
       CX.setStatus('STORY MANAGER')
       var options = CATEGORIES.map(function (c) { return '<option>' + c + '</option>' }).join('')
+      var imgOpts = '<option value="">— None —</option>' +
+        CX.GRAPHICS.map(function (g) { return '<option value="' + g.path + '">' + esc(g.name) + '</option>' }).join('')
       app.innerHTML =
         '<div class="admin-form">' +
           '<div class="ceefax-hl-cyan" id="formTitle">' + (editingId ? 'EDIT STORY' : 'NEW STORY') + '</div>' +
@@ -110,7 +112,8 @@
             '<div class="form-row"><label>Category</label><select id="category">' + options + '</select></div>' +
             '<div class="form-row"><label>Title</label><input type="text" id="title" required></div>' +
             '<div class="form-row"><label>Body (blank line = new paragraph)</label><textarea id="body" required></textarea></div>' +
-            '<div class="form-row"><label>Image URL (optional)</label><input type="text" id="imageUrl" placeholder="https://..."></div>' +
+            '<div class="form-row"><label>Story Image</label><select id="imageSelect">' + imgOpts + '</select></div>' +
+            '<div class="form-row"><label>Or custom image URL</label><input type="text" id="imageUrl" placeholder="https://..."></div>' +
             '<button type="submit" class="btn-ceefax" id="submitBtn">' + (editingId ? 'UPDATE STORY' : 'PUBLISH STORY') + '</button>' +
             '<button type="button" class="btn-ceefax danger" id="cancelEdit" style="display:' + (editingId ? 'inline-block' : 'none') + '">CANCEL</button>' +
           '</form>' +
@@ -140,7 +143,10 @@
       document.getElementById('category').value = s ? s.category : 'INDIE'
       document.getElementById('title').value = s ? s.title : ''
       document.getElementById('body').value = s ? s.body : ''
-      document.getElementById('imageUrl').value = s ? (s.image_url || '') : ''
+      var url = s ? (s.image_url || '') : ''
+      var isGraphic = CX.GRAPHICS.some(function (g) { return g.path === url })
+      document.getElementById('imageSelect').value = isGraphic ? url : ''
+      document.getElementById('imageUrl').value = isGraphic ? '' : url
     }
 
     function resetForm() {
@@ -157,7 +163,7 @@
         title: document.getElementById('title').value,
         body: document.getElementById('body').value,
         category: document.getElementById('category').value,
-        image_url: document.getElementById('imageUrl').value || null,
+        image_url: (document.getElementById('imageUrl').value.trim() || document.getElementById('imageSelect').value) || null,
       }
       var res = editingId
         ? await db.from('ceefax_stories').update(payload).eq('id', editingId)
