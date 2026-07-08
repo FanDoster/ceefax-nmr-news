@@ -45,11 +45,13 @@
     }
 
     ;(async function () {
-      if (!pnum) { showNotFound(); return }
+      // Hold LOADING... for at least 1s, even if the fetch returns sooner.
+      if (!pnum) { await CX.delay(1000); showNotFound(); return }
 
       var results = await Promise.all([
         CX.db.from('ceefax_stories').select('*').eq('page_number', pnum).single(),
         CX.db.from('ceefax_stories').select('page_number').order('page_number'),
+        CX.delay(1000),
       ])
       var story = results[0].data
       var pages = (results[1].data || []).map(function (p) { return p.page_number })

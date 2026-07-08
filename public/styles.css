@@ -74,7 +74,7 @@ html, body {
   padding: 0 10px;
   position: relative;
 }
-.ceefax-brand { display: flex; align-items: center; }
+.ceefax-brand { display: flex; align-items: center; text-decoration: none; cursor: pointer; }
 /* NMR block logo in the masthead — matched to the old CEEFAX text height */
 .ceefax-brand .nmr-logo { height: 21px; width: auto; margin: 0; }
 .ceefax-pagenum {

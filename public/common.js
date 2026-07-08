@@ -23,6 +23,10 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
   }
 
+  // Resolves after `ms`. Race it against a fetch (Promise.all) to hold the
+  // "LOADING..." screen for a minimum time, like an old teletext page loading.
+  function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms) }) }
+
   // "NMR" as chunky teletext block letters (SAA5050 sixel-mosaic look).
   // Each glyph is a 5x5 bitmap; a '1' lights that block.
   function nmrLogoSVG() {
@@ -67,7 +71,7 @@
   function renderHeader(page, sub) {
     document.getElementById('header').innerHTML =
       '<div class="ceefax-header">' +
-        '<div class="ceefax-brand">' + nmrLogoSVG() + '</div>' +
+        '<a class="ceefax-brand" href="/" aria-label="NMR News — home">' + nmrLogoSVG() + '</a>' +
         '<div class="ceefax-pagenum">P' + escapeHTML(page) + '</div>' +
         '<div class="ceefax-clock" id="cx-clock"></div>' +
       '</div>' +
@@ -97,6 +101,7 @@
   window.CX = {
     db: db,
     escapeHTML: escapeHTML,
+    delay: delay,
     nmrLogoSVG: nmrLogoSVG,
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,

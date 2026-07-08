@@ -30,10 +30,12 @@
 
     ;(async function () {
       var host = document.getElementById('stories')
-      var res = await CX.db
-        .from('ceefax_stories')
-        .select('page_number, title, category')
-        .order('page_number')
+      // Hold LOADING... for at least 1s, even if the fetch returns sooner.
+      var results = await Promise.all([
+        CX.db.from('ceefax_stories').select('page_number, title, category').order('page_number'),
+        CX.delay(1000),
+      ])
+      var res = results[0]
 
       if (res.error || !res.data) {
         host.innerHTML = '<div class="ceefax-body">Could not load stories.</div>'
