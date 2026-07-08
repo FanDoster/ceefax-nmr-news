@@ -156,12 +156,17 @@ html, body {
 .mascot-img {
   border: 0;
 }
+/* "GOOD NEWS" caption — authentic teletext double-height text */
 .mascot-caption {
   color: var(--G);
   font-size: var(--font-size);
+  line-height: var(--cell-h);
   text-align: center;
-  margin-top: 6px;
   letter-spacing: 1px;
+  margin-top: 10px;
+  transform: scaleY(2);
+  transform-origin: top;
+  margin-bottom: var(--cell-h);
 }
 /* NMR block-letter logo (chunky teletext mosaic letters) */
 .nmr-logo {
