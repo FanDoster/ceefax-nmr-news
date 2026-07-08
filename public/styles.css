@@ -65,46 +65,74 @@ html, body {
   mix-blend-mode: multiply;
 }
 
-/* === HEADER BAR === */
-.ceefax-header {
-  background: var(--B);
-  height: 44px;
+/* === HEADER: masthead row (teletext row 0) ===
+   P{n}   CEEFAX NMR {n}   {date}   {clock}  — on black, clock in yellow. */
+.ceefax-mast {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  height: 26px;
+  padding: 3px 8px 0;
+  font-size: var(--font-size);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ceefax-mast .m-page,
+.ceefax-mast .m-service,
+.ceefax-mast .m-date { color: var(--W); }
+.ceefax-mast .ceefax-clock { margin-left: auto; color: var(--Y); }
+
+/* === HEADER: section banner (rows 1-2, double height) ===
+   NMR blocks on the left + a big yellow section title on a blue banner. */
+.ceefax-banner {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  height: 50px;
+  padding: 2px 8px;
+}
+.ceefax-banner .ceefax-brand {
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.ceefax-brand { display: flex; align-items: center; text-decoration: none; cursor: pointer; }
-/* NMR block logo in the masthead — matched to the old CEEFAX text height */
-.ceefax-brand .nmr-logo { height: 21px; width: auto; margin: 0; }
-.ceefax-pagenum {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--W);
-  color: var(--B);
-  font-size: 18px;
-  font-weight: bold;
-  padding: 4px 14px;
+.ceefax-banner .nmr-logo { height: 42px; width: auto; margin: 0; }
+.ceefax-banner-title {
+  flex: 1;
+  background: var(--B);
+  color: var(--Y);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
   line-height: 1;
-}
-.ceefax-clock {
-  margin-left: auto;
-  color: var(--C);
-  font-size: 13px;
+  letter-spacing: 3px;
+  padding: 0 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
-/* === STATUS BAR === */
-.ceefax-status {
-  background: var(--C);
-  color: var(--K);
-  height: 20px;
+/* === HEADER: description row (row 3) ===
+   White description on the left, page number in yellow on the right. */
+.ceefax-subhead {
   display: flex;
-  align-items: center;
-  padding: 0 8px;
-  font-size: 13px;
-  font-weight: bold;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px;
+  font-size: var(--font-size);
 }
+.ceefax-subhead .sh-text {
+  color: var(--W);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ceefax-subhead .sh-page { color: var(--Y); flex-shrink: 0; }
 
 /* === CONTENT AREA === */
 .ceefax-content {

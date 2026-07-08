@@ -28,10 +28,11 @@
     }
 
     var pnum = parseInt(new URLSearchParams(location.search).get('p'), 10)
-    CX.renderHeader(String(pnum || '1'), 'LOADING...')
+    CX.renderHeader(String(pnum || '1'), 'NEWS', 'LOADING...')
     var stopScan = CX.scanPage(pnum || 1)
 
     function showNotFound() {
+      CX.setSection('NOT FOUND')
       CX.setStatus('PAGE NOT FOUND')
       document.getElementById('content').innerHTML =
         '<div class="ceefax-text">' +
@@ -62,7 +63,8 @@
 
       var title = String(story.title || '').toUpperCase()
       document.title = 'CEEFAX — P' + story.page_number + ' ' + title
-      CX.setStatus('NMR NEWS  —  ' + story.category + '  —  ' + title.slice(0, 40))
+      CX.setSection(story.category)
+      CX.setStatus('LATEST NMR NEWS')
 
       var date = new Date(story.created_at)
         .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })

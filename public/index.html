@@ -13,8 +13,7 @@
 
     <div class="ceefax-content" id="content">
       <div class="index-stories">
-        <div class="ceefax-hl-cyan">NMR NEWS</div>
-        <div class="ceefax-hl-yellow">GOOD GAMES NEWS</div>
+        <div class="ceefax-hl-cyan">HEADLINES</div>
         <div id="stories"><div class="ceefax-loading">LOADING...</div></div>
       </div>
     </div>
@@ -25,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/common.js"></script>
   <script>
-    CX.renderHeader('100', 'NMR NEWS  —  GOOD NEWS IN GAMES')
+    CX.renderHeader('100', 'GOOD NEWS', 'GOOD NEWS IN GAMES')
     document.getElementById('content').insertAdjacentHTML('afterbegin', CX.mascotHTML())
     var stopScan = CX.scanPage('100')
 

@@ -59,32 +59,49 @@
   }
 
   function tickClock() {
-    var el = document.getElementById('cx-clock')
-    if (!el) return
     var t = new Date()
-    el.textContent = DAYS[t.getDay()] + ' ' + pad(t.getDate()) + ' ' + MONTHS[t.getMonth()] +
-      ' ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + '/' + pad(t.getSeconds())
+    var d = document.getElementById('cx-date')
+    var c = document.getElementById('cx-clock')
+    if (d) d.textContent = DAYS[t.getDay()] + ' ' + pad(t.getDate()) + ' ' + MONTHS[t.getMonth()]
+    if (c) c.textContent = pad(t.getHours()) + ':' + pad(t.getMinutes()) + '/' + pad(t.getSeconds())
   }
 
-  // Render the masthead (NMR logo + page number + live clock) and status bar
-  // into #header, and start the ticking clock.
-  function renderHeader(page, sub) {
+  // Render the authentic Ceefax masthead into #header:
+  //   row 0 — P{n}  CEEFAX NMR {n}  {date}  {clock in yellow}
+  //   rows 1-2 — NMR block logo + a big yellow section title on a blue banner
+  //   row 3 — white description + the page number in yellow
+  // `section` is the big banner title (e.g. a category); `desc` is the row-3 text.
+  function renderHeader(page, section, desc) {
     document.getElementById('header').innerHTML =
-      '<div class="ceefax-header">' +
-        '<a class="ceefax-brand" href="/" aria-label="NMR News — home">' + nmrLogoSVG() + '</a>' +
-        '<div class="ceefax-pagenum" id="cx-pagenum">P' + escapeHTML(page) + '</div>' +
-        '<div class="ceefax-clock" id="cx-clock"></div>' +
+      '<div class="ceefax-mast">' +
+        '<span class="m-page" id="cx-pagenum">P' + escapeHTML(page) + '</span>' +
+        '<span class="m-service">CEEFAX NMR <span id="cx-svcpage">' + escapeHTML(page) + '</span></span>' +
+        '<span class="m-date" id="cx-date"></span>' +
+        '<span class="ceefax-clock" id="cx-clock"></span>' +
       '</div>' +
-      '<div class="ceefax-status" id="cx-status">' + escapeHTML(sub) + '</div>'
+      '<div class="ceefax-banner">' +
+        '<a class="ceefax-brand" href="/" aria-label="NMR News — home">' + nmrLogoSVG() + '</a>' +
+        '<div class="ceefax-banner-title" id="cx-section">' + escapeHTML(section) + '</div>' +
+      '</div>' +
+      '<div class="ceefax-subhead">' +
+        '<span class="sh-text" id="cx-desc">' + escapeHTML(desc) + '</span>' +
+        '<span class="sh-page">' + escapeHTML(page) + '</span>' +
+      '</div>'
     tickClock()
     clearInterval(renderHeader._t)
     renderHeader._t = setInterval(tickClock, 1000)
   }
 
-  // Update just the cyan status bar text (without restarting the clock).
-  function setStatus(sub) {
-    var el = document.getElementById('cx-status')
-    if (el) el.textContent = sub
+  // Update the row-3 description text (without restarting the clock).
+  function setStatus(desc) {
+    var el = document.getElementById('cx-desc')
+    if (el) el.textContent = desc
+  }
+
+  // Update the big yellow section banner title.
+  function setSection(section) {
+    var el = document.getElementById('cx-section')
+    if (el) el.textContent = section
   }
 
   // Teletext page acquisition: rapidly increment the header page number, as if
@@ -92,15 +109,18 @@
   // `finalPage`. Returns a stop() to call once the page has loaded.
   function scanPage(finalPage) {
     var el = document.getElementById('cx-pagenum')
+    var svc = document.getElementById('cx-svcpage')
     if (!el) return function () {}
     var n = 100
     var timer = setInterval(function () {
       n = n >= 899 ? 100 : n + 1
       el.textContent = 'P' + n
+      if (svc) svc.textContent = n
     }, 25)
     return function stop() {
       clearInterval(timer)
       el.textContent = 'P' + finalPage
+      if (svc) svc.textContent = finalPage
     }
   }
 
@@ -123,6 +143,7 @@
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,
     setStatus: setStatus,
+    setSection: setSection,
     scanPage: scanPage,
     renderFastext: renderFastext,
   }

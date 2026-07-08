@@ -50,7 +50,7 @@
     var stories = []
     var app = document.getElementById('app')
 
-    CX.renderHeader('199', 'ADMIN — SIGN IN TO MANAGE STORIES')
+    CX.renderHeader('199', 'ADMIN', 'SIGN IN TO MANAGE STORIES')
 
     db.auth.getSession().then(function (res) { session = res.data.session; render() })
     db.auth.onAuthStateChange(function (_e, s) { session = s; render() })
@@ -72,7 +72,7 @@
        which restricts writes to the admin account; the UI gate alone is not
        security (anyone can call the REST API directly). */
     function renderLogin() {
-      CX.setStatus('ADMIN — SIGN IN TO MANAGE STORIES')
+      CX.setStatus('SIGN IN TO MANAGE STORIES')
       app.innerHTML =
         '<div class="admin-form">' +
           '<div class="ceefax-hl-yellow" style="margin-bottom:14px">ADMIN ACCESS</div>' +
@@ -98,7 +98,7 @@
 
     /* ---------- Story manager ---------- */
     function renderManager() {
-      CX.setStatus('STORY MANAGER — ADD AND EDIT NMR NEWS STORIES')
+      CX.setStatus('STORY MANAGER')
       var options = CATEGORIES.map(function (c) { return '<option>' + c + '</option>' }).join('')
       app.innerHTML =
         '<div class="admin-form">' +
