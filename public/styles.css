@@ -43,43 +43,107 @@ html, body {
   padding-bottom: 34px;
   /* very faint bloom, like bright teletext on a CRT */
   text-shadow: 0 0 1px currentColor;
-  /* the slightly bulged CRT glass — rounded corners + a dark inset edge */
-  border-radius: 10px;
+  /* the bulged CRT glass — rounded corners */
+  border-radius: 16px;
 }
 
-/* CRT vignette — darkens the corners like light falling off a curved tube.
-   A fixed overlay so it tracks the viewport, above content but click-through. */
+/* CRT curvature — the bulged-glass read: a deep rounded vignette falloff for
+   the light dropping off the curved tube, plus a soft specular sheen across the
+   top like a reflection on the glass. Fixed overlay, above content, click-through. */
 .ceefax-page::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 51;
-  /* soft darkening towards the edges + a tighter corner falloff */
   background:
-    radial-gradient(120% 120% at 50% 50%,
-      rgba(0, 0, 0, 0) 62%,
-      rgba(0, 0, 0, 0.35) 100%);
+    /* specular sheen — light glancing off the curved glass */
+    radial-gradient(70% 55% at 50% 6%,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0) 55%),
+    /* vignette — darkening that curves in toward the corners */
+    radial-gradient(130% 128% at 50% 50%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(0, 0, 0, 0.22) 82%,
+      rgba(0, 0, 0, 0.5) 100%);
   /* the inset shadow reads as the curved glass lip around the screen */
-  box-shadow: inset 0 0 90px 12px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 110px 18px rgba(0, 0, 0, 0.6);
 }
 
-/* CRT scanline overlay — visible horizontal lines across the whole page.
-   Sits above content but ignores clicks. */
+/* CRT shadow mask — horizontal scanlines + a vertical RGB aperture grille, the
+   two together giving the phosphor-screen look. Fixed overlay, click-through. */
 .ceefax-page::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0)   0px,
-    rgba(0, 0, 0, 0)   1px,
-    rgba(0, 0, 0, 0.25) 2px,
-    rgba(0, 0, 0, 0.25) 3px
-  );
+  background-image:
+    /* scanlines (darken every other row) */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0)   0px,
+      rgba(0, 0, 0, 0)   1px,
+      rgba(0, 0, 0, 0.22) 2px,
+      rgba(0, 0, 0, 0.22) 3px
+    ),
+    /* aperture grille — 1px red / green / blue phosphor columns */
+    repeating-linear-gradient(
+      to right,
+      rgba(255, 0, 0, 0.10) 0px,
+      rgba(255, 0, 0, 0.10) 1px,
+      rgba(0, 255, 0, 0.06) 1px,
+      rgba(0, 255, 0, 0.06) 2px,
+      rgba(0, 0, 255, 0.10) 2px,
+      rgba(0, 0, 255, 0.10) 3px
+    );
   mix-blend-mode: multiply;
+}
+
+/* CRT switch-on — a bright line blooms open to full height then fades, as if
+   the tube is powering up. Plays once each time a page loads (the "tune-in"). */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  background: #fff;
+  transform-origin: center;
+  animation: crt-power 0.7s ease-out both;
+}
+@keyframes crt-power {
+  0%   { opacity: 1; transform: scaleY(0.004); }   /* a thin bright scan line */
+  40%  { opacity: 1; transform: scaleY(0.004); }
+  55%  { opacity: 0.55; transform: scaleY(1); }    /* snaps open to a soft bloom */
+  100% { opacity: 0; transform: scaleY(1); }       /* then fades to reveal the page */
+}
+
+/* CRT hum bar — a faint bright band drifting slowly down the screen, like the
+   rolling interference on an old set. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 52;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.045) 50%,
+    rgba(255, 255, 255, 0) 100%);
+  background-size: 100% 220px;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  animation: crt-hum 7s linear infinite;
+}
+@keyframes crt-hum {
+  from { background-position: 0 -240px; }
+  to   { background-position: 0 130vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
+  body::before { animation: none; }
 }
 
 /* Header stays put at the top while the content scrolls under it.
@@ -156,8 +220,11 @@ html, body {
   overflow: hidden;
   white-space: nowrap;
   text-transform: uppercase;
-  /* hard black drop-shadow, like the BBC Ceefax section headers */
-  text-shadow: 3px 9px 0 var(--K);
+  /* hard black drop-shadow (BBC Ceefax headers) + subtle CRT colour fringing */
+  text-shadow:
+    3px 9px 0 var(--K),
+    0.7px 0 0 rgba(255, 0, 60, 0.4),
+    -0.7px 0 0 rgba(0, 140, 255, 0.4);
 }
 
 /* === HEADER: description row (row 3) ===
@@ -247,6 +314,11 @@ html, body {
   font-size: var(--hl-size);
   line-height: 1.05;
   margin-bottom: 4px;
+  /* subtle CRT colour fringing on the big headline text */
+  text-shadow:
+    0.6px 0 0 rgba(255, 0, 60, 0.35),
+    -0.6px 0 0 rgba(0, 140, 255, 0.35),
+    0 0 1px currentColor;
 }
 .ceefax-hl-cyan   { color: var(--C); }
 .ceefax-hl-yellow { color: var(--Y); margin-bottom: 12px; }
