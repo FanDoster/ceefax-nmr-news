@@ -162,7 +162,7 @@ html, body {
 
 /* === CONTENT AREA === */
 .ceefax-content {
-  padding: 14px 14px 0 14px;
+  padding: 14px 14px 0 220px;
   display: flex;
   gap: 0;
 }
@@ -172,8 +172,9 @@ html, body {
   width: 192px;
   flex-shrink: 0;
   image-rendering: pixelated;
-  position: sticky;
-  top: 0;
+  position: fixed;
+  left: 14px;
+  top: 118px;
   height: fit-content;
 }
 .ceefax-graphic img,
