@@ -55,7 +55,7 @@ html, body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 51;
+  z-index: 151;   /* above all UI (header, FASTEXT) so the whole screen curves */
   background:
     /* specular sheen — light glancing off the curved glass */
     radial-gradient(70% 55% at 50% 6%,
@@ -71,13 +71,16 @@ html, body {
 }
 
 /* CRT shadow mask — horizontal scanlines + a vertical RGB aperture grille, the
-   two together giving the phosphor-screen look. Fixed overlay, click-through. */
+   two together giving the phosphor-screen look. One fixed, viewport-covering
+   overlay above ALL UI (header, FASTEXT footer, everything) so the scanlines
+   apply globally rather than being patched onto individual sections.
+   pointer-events: none keeps everything underneath clickable. */
 .ceefax-page::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 50;
+  z-index: 150;
   background-image:
     /* scanlines (darken every other row) */
     repeating-linear-gradient(
@@ -124,13 +127,13 @@ html.crt-boot body::after {
 }
 
 /* CRT hum bar — a faint bright band drifting slowly down the screen, like the
-   rolling interference on an old set. */
+   rolling interference on an old set. Above the UI too, so it sweeps the whole screen. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 52;
+  z-index: 152;
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0) 0%,
@@ -157,21 +160,6 @@ body::before {
   top: 0;
   z-index: 60;
   background: var(--K);
-}
-#header::after, .wx-header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 70;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0)   0px,
-    rgba(0, 0, 0, 0)   1px,
-    rgba(0, 0, 0, 0.25) 2px,
-    rgba(0, 0, 0, 0.25) 3px
-  );
-  mix-blend-mode: multiply;
 }
 
 /* === HEADER: masthead row (teletext row 0) ===
