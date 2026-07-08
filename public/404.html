@@ -90,10 +90,18 @@
     document.getElementById('big404').innerHTML =
       '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="404">' + rects + '</svg>'
 
-    // Authentic teletext touch: a page number that rolls forever and never finds the page
+    // Authentic teletext touch: a page number that rolls forever and never finds
+    // the page — but while the viewer is tuning (typing a page number), show the
+    // digits they're entering instead, as if the set is searching for that page.
     var s = document.getElementById('searching')
+    var typedDigits = ''
+    document.addEventListener('cx-page-entry', function (e) {
+      typedDigits = (e.detail && e.detail.digits) || ''
+    })
     setInterval(function () {
-      s.textContent = 'SEARCHING  4' + Math.floor(Math.random() * 10) + Math.floor(Math.random() * 10)
+      s.textContent = typedDigits
+        ? 'SEARCHING  ' + (typedDigits + '•••').slice(0, 3)
+        : 'SEARCHING  4' + Math.floor(Math.random() * 10) + Math.floor(Math.random() * 10)
     }, 90)
 
     // FASTEXT — the RANDOM button jumps to a real story page

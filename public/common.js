@@ -214,8 +214,15 @@
     return '/404.html'
   }
 
+  // Broadcast the digits typed so far so pages can echo them (e.g. the 404
+  // page shows them in its "SEARCHING" counter).
+  function emitPageEntry() {
+    document.dispatchEvent(new CustomEvent('cx-page-entry', { detail: { digits: pageBuffer } }))
+  }
+
   function showTypedPage() {
     var el = document.getElementById('cx-pagenum')
+    emitPageEntry()
     // Fill the P-number with the digits typed so far, blanks for the rest.
     if (el) el.textContent = 'P' + (pageBuffer + '   ').slice(0, 3)
   }
@@ -227,6 +234,7 @@
       var el = document.getElementById('cx-pagenum')
       if (el) el.textContent = 'P' + currentPage
     }
+    emitPageEntry()
   }
 
   function typingInField() {
