@@ -30,6 +30,11 @@
       color: var(--C);
       letter-spacing: 3px;
     }
+    /* Subtle flash while the viewer is tuning (typing a page number) */
+    .searching.tuning {
+      animation: search-flash 0.55s ease-in-out infinite;
+    }
+    @keyframes search-flash { 50% { opacity: 0.35; } }
   </style>
 </head>
 <body>
@@ -97,6 +102,7 @@
     var typedDigits = ''
     document.addEventListener('cx-page-entry', function (e) {
       typedDigits = (e.detail && e.detail.digits) || ''
+      s.classList.toggle('tuning', !!typedDigits)
     })
     setInterval(function () {
       s.textContent = typedDigits
