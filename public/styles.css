@@ -167,11 +167,14 @@ html, body {
   gap: 0;
 }
 
-/* Mosaic graphic column (left) */
+/* Mosaic graphic column (left) — stays in place when scrolling */
 .ceefax-graphic {
   width: 192px;
   flex-shrink: 0;
   image-rendering: pixelated;
+  position: sticky;
+  top: 0;
+  height: fit-content;
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
