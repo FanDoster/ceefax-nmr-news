@@ -18,6 +18,30 @@
   <script>
     var db = CX.db
     var esc = CX.escapeHTML
+
+    // Handle email confirmation / magic-link redirects
+    // Supabase sends tokens in the URL hash fragment.
+    // (Leading semicolon guards against ASI: without it the previous line's
+    //  `var esc = CX.escapeHTML` would parse as a call `CX.escapeHTML(...)()`.)
+    ;(function handleHashToken() {
+      if (!window.location.hash) return
+      var h = window.location.hash.substring(1)
+      if (h.indexOf('access_token=') === -1) return
+      var params = {}
+      h.split('&').forEach(function (p) {
+        var kv = p.split('=')
+        params[kv[0]] = decodeURIComponent(kv[1] || '')
+      })
+      if (params.access_token && params.refresh_token) {
+        db.auth.setSession({
+          access_token: params.access_token,
+          refresh_token: params.refresh_token
+        }).then(function () {
+          window.location.hash = ''
+          window.location.reload()
+        })
+      }
+    })()
     var CATEGORIES = ['INDIE', 'AAA', 'ENVIRONMENT', 'EDUCATION', 'COMMUNITY',
       'ACCESSIBILITY', 'TECHNOLOGY', 'CULTURE', 'GOVERNMENT']
 
