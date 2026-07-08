@@ -17,7 +17,12 @@
     }
     .wx-body { position: relative; padding: 4px 8px; min-height: 470px; }
     .wx-count { position: absolute; top: 4px; right: 14px; color: var(--W); font-size: var(--font-size); }
-    .wx-cond { position: absolute; top: 150px; left: 14px; color: var(--C); font-size: 26px; }
+    .wx-cond { position: absolute; top: 130px; left: 14px; color: var(--C); font-size: 26px; }
+    /* Temperature colour key */
+    .wx-key { position: absolute; top: 190px; left: 14px; font-size: 15px; line-height: 18px; }
+    .wx-key-title { color: var(--W); margin-bottom: 3px; }
+    .wx-key-row { display: flex; align-items: center; gap: 7px; color: var(--W); }
+    .wx-key .sw { width: 15px; height: 13px; flex-shrink: 0; }
     .wx-map { display: flex; justify-content: center; }
     .wx-map-wrap { position: relative; width: 384px; }
     .wx-map-svg { width: 384px; height: auto; display: block; image-rendering: pixelated; }
@@ -179,6 +184,24 @@
       return best
     }
 
+    // Temperature -> teletext colour, cold (white/cyan) to hot (red/magenta).
+    function tempColor(t) {
+      if (t <= 3) return 'var(--W)'
+      if (t <= 10) return 'var(--C)'
+      if (t <= 16) return 'var(--G)'
+      if (t <= 22) return 'var(--Y)'
+      if (t <= 29) return 'var(--R)'
+      return 'var(--M)'
+    }
+    var KEY_ROWS = [
+      ['var(--M)', '30+'], ['var(--R)', '23-29'], ['var(--Y)', '17-22'],
+      ['var(--G)', '11-16'], ['var(--C)', '4-10'], ['var(--W)', '0-3'],
+    ]
+    var KEY_HTML = '<div class="wx-key"><div class="wx-key-title">TEMP &deg;C</div>' +
+      KEY_ROWS.map(function (k) {
+        return '<div class="wx-key-row"><span class="sw" style="background:' + k[0] + '"></span>' + k[1] + '</div>'
+      }).join('') + '</div>'
+
     var forecast = {}, dayNames = [], day = 0
 
     function render() {
@@ -187,14 +210,16 @@
       var labels = SPOTS.map(function (s) {
         var f = forecast[s.name]
         if (!f) return ''
+        var t = f.max[day]
         codes.push(f.code[day])
         var p = pos(s.lat, s.lon)
-        return '<span class="wx-t" style="left:' + p.left + '%;top:' + p.top + '%">' + f.max[day] + '</span>'
+        return '<span class="wx-t" style="left:' + p.left + '%;top:' + p.top + '%;color:' + tempColor(t) + '">' + t + '</span>'
       }).join('')
 
       document.getElementById('wx-body').innerHTML =
         '<div class="wx-count">' + (day + 1) + '/3</div>' +
         '<div class="wx-cond">' + (codes.length ? condWord(modal(codes)) : '') + '</div>' +
+        KEY_HTML +
         '<div class="wx-map"><div class="wx-map-wrap">' + mapSVG() + labels + '</div></div>'
     }
 
