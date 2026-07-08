@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=ModeSeven&display=swap');
+
+:root {
+  --ceefax-bg: #000000;
+  --ceefax-cyan: #00ffff;
+  --ceefax-yellow: #ffff00;
+  --ceefax-green: #00ff00;
+  --ceefax-magenta: #ff00ff;
+  --ceefax-red: #ff0000;
+  --ceefax-blue: #0000ff;
+  --ceefax-white: #ffffff;
+  --ceefax-black: #000000;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--ceefax-bg);
+  color: var(--ceefax-white);
+  font-family: 'ModeSeven', monospace;
+  font-size: 20px;
+  line-height: 1.35;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--ceefax-cyan);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ceefax-yellow);
+}
+
+.ceefax-app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  min-height: 100vh;
+}
+
+/* Header bar */
+.ceefax-header {
+  background: var(--ceefax-blue);
+  color: var(--ceefax-white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+}
+
+.ceefax-header .brand {
+  font-weight: bold;
+  font-size: 2rem;
+  letter-spacing: 4px;
+}
+
+.ceefax-header .brand span {
+  color: var(--ceefax-red);
+}
+
+.ceefax-header .page-num {
+  background: var(--ceefax-white);
+  color: var(--ceefax-blue);
+  padding: 4px 12px;
+  font-weight: bold;
+}
+
+.ceefax-header .date {
+  color: var(--ceefax-cyan);
+  font-size: 0.9rem;
+}
+
+/* Status bar */
+.ceefax-status {
+  background: var(--ceefax-cyan);
+  color: var(--ceefax-black);
+  padding: 4px 16px;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+  font-weight: bold;
+}
+
+/* Main content area */
+.ceefax-content {
+  padding: 0 4px;
+}
+
+/* Headlines on P100 */
+.headline-list {
+  list-style: none;
+}
+
+.headline-item {
+  display: flex;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.headline-item:hover {
+  background: rgba(0, 255, 255, 0.1);
+}
+
+.headline-num {
+  color: var(--ceefax-yellow);
+  min-width: 60px;
+  font-weight: bold;
+}
+
+.headline-category {
+  color: var(--ceefax-cyan);
+  min-width: 100px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.headline-title {
+  color: var(--ceefax-white);
+  flex: 1;
+}
+
+/* Story page */
+.story-page {
+  padding: 8px 0;
+}
+
+.story-header {
+  background: var(--ceefax-cyan);
+  color: var(--ceefax-black);
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.story-meta {
+  color: var(--ceefax-yellow);
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.story-body {
+  color: var(--ceefax-white);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.story-body p {
+  margin-bottom: 12px;
+}
+
+/* Colour bars / flashes */
+.flash-cyan {
+  background: var(--ceefax-cyan);
+  color: var(--ceefax-black);
+  padding: 4px 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.flash-yellow {
+  background: var(--ceefax-yellow);
+  color: var(--ceefax-black);
+  padding: 4px 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.flash-magenta {
+  background: var(--ceefax-magenta);
+  color: var(--ceefax-black);
+  padding: 4px 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.flash-green {
+  background: var(--ceefax-green);
+  color: var(--ceefax-black);
+  padding: 4px 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+/* Navigation footer */
+.ceefax-nav {
+  margin-top: 24px;
+  padding: 8px 0;
+  border-top: 2px solid var(--ceefax-cyan);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.ceefax-nav a {
+  color: var(--ceefax-yellow);
+}
+
+.ceefax-nav .nav-hint {
+  color: var(--ceefax-cyan);
+}
+
+/* Admin upload form */
+.admin-page {
+  padding: 16px 0;
+}
+
+.admin-page h2 {
+  color: var(--ceefax-yellow);
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  color: var(--ceefax-cyan);
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: #111;
+  border: 2px solid var(--ceefax-cyan);
+  color: var(--ceefax-white);
+  font-family: 'ModeSeven', monospace;
+  font-size: 1rem;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--ceefax-yellow);
+}
+
+.form-group textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.btn-ceefax {
+  background: var(--ceefax-cyan);
+  color: var(--ceefax-black);
+  border: none;
+  font-family: 'ModeSeven', monospace;
+  font-size: 1rem;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.btn-ceefax:hover {
+  background: var(--ceefax-yellow);
+}
+
+.btn-ceefax:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-logout {
+  background: transparent;
+  color: var(--ceefax-red);
+  border: 2px solid var(--ceefax-red);
+  font-family: 'ModeSeven', monospace;
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  cursor: pointer;
+  margin-left: 16px;
+}
+
+/* Messages */
+.ceefax-msg {
+  padding: 8px 16px;
+  margin: 8px 0;
+  font-weight: bold;
+}
+
+.ceefax-msg.success {
+  background: var(--ceefax-green);
+  color: var(--ceefax-black);
+}
+
+.ceefax-msg.error {
+  background: var(--ceefax-red);
+  color: var(--ceefax-white);
+}
+
+/* Auth bar for admin */
+.auth-bar {
+  text-align: right;
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+
+.auth-bar button {
+  background: transparent;
+  color: var(--ceefax-cyan);
+  border: 1px solid var(--ceefax-cyan);
+  font-family: 'ModeSeven', monospace;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.auth-bar span {
+  color: var(--ceefax-green);
+  font-size: 0.75rem;
+  margin-right: 12px;
+}
+
+/* Loading */
+.loading {
+  color: var(--ceefax-yellow);
+  padding: 24px;
+  text-align: center;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Clock */
+.ceefax-clock {
+  color: var(--ceefax-yellow);
+  font-size: 0.85rem;
+}
+
+/* Page transition effect */
+.ceefax-page-enter {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.ceefax-page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+/* Sub-page indicator in header */
+.sub-page {
+  color: var(--ceefax-green);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
