@@ -312,39 +312,10 @@
   }
   window.addEventListener('resize', fitViewport)
 
-  // === Newsflash ticker — a slim scrolling strip of the latest headlines above
-  // the FASTEXT bar, for that rolling-broadcast feel. Fetched over the Supabase
-  // REST API so it works on every page (no CDN client needed). Pages without a
-  // FASTEXT bar (e.g. admin) are skipped. ===
-  function initTicker() {
-    if (!db && !SUPABASE_URL) return
-    if (!document.getElementById('fastext')) return
-
-    var bar = document.createElement('div')
-    bar.className = 'ceefax-ticker'
-    bar.innerHTML = '<span class="tick-label">NEWS</span>' +
-      '<span class="tick-track"><span class="tick-run"></span></span>'
-    document.body.appendChild(bar)
-
-    var url = SUPABASE_URL + '/rest/v1/ceefax_stories' +
-      '?select=page_number,title&order=page_number.desc&limit=12'
-    cachedJSON(url, 5 * 60 * 1000, {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
-    }).then(function (rows) {
-      if (!rows || !rows.length) { bar.remove(); return }
-      var seq = rows.map(function (r) {
-        return 'P' + r.page_number + '  ' + String(r.title).toUpperCase()
-      }).join('   •••   ') + '   •••   '
-      // Two copies so the -50% scroll loops seamlessly.
-      bar.querySelector('.tick-run').textContent = seq + seq
-    }).catch(function () { bar.remove() })
-  }
-
-  function startChrome() { fitViewport(); initTicker() }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startChrome)
+    document.addEventListener('DOMContentLoaded', fitViewport)
   } else {
-    startChrome()
+    fitViewport()
   }
 
   // Generic Ceefax-style story graphics (blocky SVGs in /images/graphics).
