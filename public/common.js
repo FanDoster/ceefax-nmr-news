@@ -201,17 +201,17 @@
   var pageBuffer = ''       // digits typed so far
   var pageBufferTimer = null
 
-  // Map a typed 3-digit page number to a URL. In-range story numbers go to the
-  // story page (which shows its own NOT FOUND for pages that aren't published),
-  // so tuning to a missing page behaves like the real magazine.
+  // Map a typed 3-digit page number to a URL. Story-range numbers go to the
+  // story page (which redirects to 404 if that page isn't published); anything
+  // that isn't a real page tunes to the 404 "off air" page.
   function pageURL(n) {
     if (n === 100) return '/'
     if (n === 199) return '/admin.html'
     if (n === 300) return '/sport.html'
     if (n === 401) return '/weather.html'
     if (n === 402) return '/cities.html'
-    if (n === 404) return '/404.html'
-    return '/story.html?p=' + n
+    if (n >= 101 && n <= 198) return '/story.html?p=' + n
+    return '/404.html'
   }
 
   function showTypedPage() {

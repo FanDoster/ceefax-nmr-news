@@ -31,19 +31,9 @@
     CX.renderHeader(String(pnum || '1'), 'NEWS', 'LOADING...')
     var stopScan = CX.scanPage(pnum || 1)
 
+    // Unpublished / mistyped page — tune to the 404 "off air" page.
     function showNotFound() {
-      CX.setSection('NOT FOUND')
-      CX.setStatus('PAGE NOT FOUND')
-      document.getElementById('content').innerHTML =
-        '<div class="ceefax-text">' +
-          '<div class="ceefax-hl-yellow">PAGE NOT FOUND</div>' +
-          '<div class="ceefax-body">That Ceefax page does not exist.</div>' +
-          '<a class="ceefax-flash cyan" href="/">HEADLINES P100</a>' +
-        '</div>'
-      CX.renderFastext([
-        { color: 'red',  label: 'HEADLINES', href: '/' },
-        { color: 'cyan', label: 'ADMIN', href: '/admin.html' },
-      ])
+      location.replace('/404.html')
     }
 
     ;(async function () {
