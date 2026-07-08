@@ -101,7 +101,8 @@ html, body {
 }
 
 /* CRT switch-on — a bright line blooms open to full height then fades, as if
-   the tube is powering up. Plays once each time a page loads (the "tune-in"). */
+   the tube is powering up. Only plays on a real load/refresh of the site, not
+   on internal link clicks: JS adds .crt-boot to <html> when it should run. */
 body::after {
   content: '';
   position: fixed;
@@ -110,6 +111,9 @@ body::after {
   z-index: 200;
   background: #fff;
   transform-origin: center;
+  opacity: 0;
+}
+html.crt-boot body::after {
   animation: crt-power 0.7s ease-out both;
 }
 @keyframes crt-power {

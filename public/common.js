@@ -318,6 +318,20 @@
     fitViewport()
   }
 
+  // === CRT power-on gating — only play the switch-on "tune-in" on a genuine
+  // load/refresh of the site or a fresh arrival from elsewhere, NOT when
+  // clicking a link within the site (those are same-origin navigations). ===
+  function shouldPowerOn() {
+    var nav = (window.performance && performance.getEntriesByType &&
+               performance.getEntriesByType('navigation')[0]) || null
+    if (nav && nav.type === 'reload') return true       // refresh (F5)
+    try {
+      // no referrer, or arrived from a different site → a fresh entry
+      return !document.referrer || new URL(document.referrer).origin !== location.origin
+    } catch (e) { return true }
+  }
+  if (shouldPowerOn()) document.documentElement.classList.add('crt-boot')
+
   // Generic Ceefax-style story graphics (blocky SVGs in /images/graphics).
   var GRAPHICS = [
     { name: 'Games controller', path: '/images/graphics/controller.svg' },
