@@ -120,10 +120,10 @@ html.crt-boot body::after {
   animation: crt-power 0.7s ease-out both;
 }
 @keyframes crt-power {
-  0%   { opacity: 1; transform: scaleY(0.004); }   /* a thin bright scan line */
-  40%  { opacity: 1; transform: scaleY(0.004); }
-  55%  { opacity: 0.55; transform: scaleY(1); }    /* snaps open to a soft bloom */
-  100% { opacity: 0; transform: scaleY(1); }       /* then fades to reveal the page */
+  0%   { opacity: 0.8; transform: scaleY(0.004); }  /* a thin bright scan line */
+  40%  { opacity: 0.8; transform: scaleY(0.004); }
+  55%  { opacity: 0.28; transform: scaleY(1); }     /* snaps open to a faint bloom */
+  100% { opacity: 0; transform: scaleY(1); }        /* then fades to reveal the page */
 }
 /* On power-on, the picture fades up slowly behind the flash rather than just
    being uncovered — the tube warming to full brightness. */
