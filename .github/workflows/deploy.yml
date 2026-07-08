@@ -23,6 +23,9 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
+      - name: Add SPA fallback
+        run: cp dist/index.html dist/200.html
+
       - name: Deploy to Surge
         run: npx surge dist --domain ceefax-nmr-news.surge.sh
         env:
