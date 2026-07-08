@@ -1,14 +1,22 @@
 @font-face {
   font-family: 'Bedstead';
-  src: url('/fonts/Bedstead-Regular.ttf') format('truetype');
+  src: url('/fonts/Bedstead-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
 :root {
+  /* The 8 teletext colours (SAA5050) */
   --K: #000000; --R: #ff0000; --G: #00ff00; --Y: #ffff00;
   --B: #0000ff; --M: #ff00ff; --C: #00ffff; --W: #ffffff;
+
+  /* 40x25 character grid. Page is 40 cells wide. */
+  --cell-w: 16px;   /* character cell width  */
+  --cell-h: 20px;   /* character cell height (taller than wide, ~4:3 stretch) */
+  --font-size: 20px;
+  --hl-size: 31px;  /* double-height headline size */
+  --teletext: 'Bedstead', 'Menlo', 'Courier New', monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,10 +27,13 @@ html, body, #root {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
-  image-rendering: pixelated;
+  font-family: var(--teletext);
+  /* Teletext has a single weight — never let the browser fake bold/italic */
+  font-synthesis: none;
+  font-weight: normal;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 /* The Ceefax page — exactly 640px wide like the Python generator */
@@ -32,7 +43,26 @@ html, body, #root {
   background: var(--K);
   color: var(--W);
   position: relative;
-  padding-bottom: 28px;
+  padding-bottom: 34px;
+  /* very faint bloom, like bright teletext on a CRT */
+  text-shadow: 0 0 1px currentColor;
+}
+
+/* CRT scanline overlay — subtle horizontal lines across the whole page.
+   Sits above content but ignores clicks. */
+.ceefax-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0)   0px,
+    rgba(0, 0, 0, 0)   2px,
+    rgba(0, 0, 0, 0.28) 3px
+  );
+  mix-blend-mode: multiply;
 }
 
 /* === HEADER BAR === */
@@ -44,9 +74,9 @@ html, body, #root {
   padding: 0 10px;
   position: relative;
 }
-.ceefax-brand { font-size: 20px; font-weight: bold; line-height: 1; }
-.ceefax-brand .c  { color: var(--W); }
-.ceefax-brand .fax { color: var(--R); }
+.ceefax-brand { display: flex; align-items: center; }
+/* NMR block logo in the masthead — matched to the old CEEFAX text height */
+.ceefax-brand .nmr-logo { height: 21px; width: auto; margin: 0; }
 .ceefax-pagenum {
   position: absolute;
   left: 50%;
@@ -85,13 +115,28 @@ html, body, #root {
 
 /* Mosaic graphic column (left) */
 .ceefax-graphic {
-  width: 200px;
+  width: 192px;
   flex-shrink: 0;
   image-rendering: pixelated;
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
-  width: 200px;
+  width: 192px;
+  display: block;
+  image-rendering: pixelated;
+}
+.mascot-img {
+  border: 0;
+}
+.mascot-caption {
+  color: var(--G);
+  font-size: var(--font-size);
+  text-align: center;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+/* NMR block-letter logo (chunky teletext mosaic letters) */
+.nmr-logo {
   display: block;
 }
 
@@ -99,32 +144,29 @@ html, body, #root {
 .ceefax-text {
   flex: 1;
   padding-left: 20px;
-  font-size: 18px;
-  line-height: 1.4;
+  font-size: var(--font-size);
+  line-height: var(--cell-h);
 }
 
-/* Headlines */
-.ceefax-hl-cyan {
-  color: var(--C);
-  font-size: 26px;
-  font-weight: bold;
-  line-height: 1.1;
-  margin-bottom: 2px;
-}
+/* Headlines — teletext double-height style. Larger, blocky, wraps cleanly.
+   (Real teletext uses a double-height control code; font-size scaling gives
+   the same read and, unlike a CSS transform, survives multi-line wrapping.) */
+.ceefax-hl-cyan,
 .ceefax-hl-yellow {
-  color: var(--Y);
-  font-size: 34px;
-  font-weight: bold;
-  line-height: 1.1;
-  margin-bottom: 10px;
+  display: block;
+  font-size: var(--hl-size);
+  line-height: 1.05;
+  margin-bottom: 4px;
 }
+.ceefax-hl-cyan   { color: var(--C); }
+.ceefax-hl-yellow { color: var(--Y); margin-bottom: 12px; }
 
 /* Body text */
 .ceefax-body {
-  font-size: 18px;
-  line-height: 1.45;
+  font-size: var(--font-size);
+  line-height: var(--cell-h);
   color: var(--W);
-  margin-bottom: 8px;
+  margin-bottom: var(--cell-h);
 }
 
 /* Flashes */
@@ -141,7 +183,52 @@ html, body, #root {
 .ceefax-flash.magenta{ background: var(--M); color: var(--K); }
 .ceefax-flash.red   { background: var(--R); color: var(--W); }
 
-/* === FOOTER === */
+/* === FASTEXT BAR (row 24) ===
+   The iconic four coloured buttons — RED GREEN YELLOW CYAN — that mapped
+   to the coloured keys on the TV remote. Each is a labelled link. */
+.ceefax-fastext {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 640px;
+  max-width: 100vw;
+  height: 28px;
+  display: flex;
+  background: var(--K);
+  border-top: 2px solid rgba(0, 255, 255, 0.35);
+  z-index: 100;
+}
+.ceefax-fastext .fx {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--W);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* the coloured square that fronts each link (the remote-key colour) */
+.ceefax-fastext .fx::before {
+  content: '';
+  flex-shrink: 0;
+  width: 12px;
+  height: 20px;
+  background: currentColor;
+}
+.ceefax-fastext .fx.red    { color: var(--R); }
+.ceefax-fastext .fx.green  { color: var(--G); }
+.ceefax-fastext .fx.yellow { color: var(--Y); }
+.ceefax-fastext .fx.cyan   { color: var(--C); }
+.ceefax-fastext .fx .lbl   { color: var(--W); }
+.ceefax-fastext .fx:hover .lbl { color: currentColor; }
+
+/* Plain footer — still used by the admin page (P199) */
 .ceefax-footer {
   position: absolute;
   bottom: 0;
@@ -151,15 +238,11 @@ html, body, #root {
   padding: 6px 14px;
   display: flex;
   justify-content: space-between;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: var(--font-size);
 }
-.ceefax-footer a {
-  color: var(--C);
-  text-decoration: none;
-}
-.ceefax-footer .next { color: var(--Y); }
+.ceefax-footer a { color: var(--C); text-decoration: none; }
 .ceefax-footer .hint { color: var(--C); }
+.ceefax-footer .next { color: var(--Y); }
 
 /* === INDEX PAGE (P100) === */
 .index-graphic {
@@ -173,27 +256,30 @@ html, body, #root {
 .index-story-row {
   display: flex;
   align-items: baseline;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 3px 0;
   cursor: pointer;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: var(--font-size);
+  line-height: var(--cell-h);
 }
-.index-story-row:hover { background: rgba(0,255,255,0.08); }
+.index-story-row:hover { background: rgba(0,255,255,0.12); }
+.index-story-row:hover .index-title { color: var(--C); }
 .index-pn {
   color: var(--Y);
-  font-weight: bold;
-  min-width: 42px;
+  min-width: 4ch;
   flex-shrink: 0;
 }
 .index-cat {
-  color: var(--C);
-  font-size: 12px;
+  color: var(--G);
+  font-size: 14px;
   text-transform: uppercase;
-  min-width: 80px;
+  width: 11ch;
   flex-shrink: 0;
-  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.index-title { color: var(--W); }
+.index-title { color: var(--W); flex: 1; }
 
 /* === ADMIN PAGE (P199) === */
 .admin-form { padding: 14px; }
@@ -212,7 +298,7 @@ html, body, #root {
   background: #111;
   border: 2px solid var(--C);
   color: var(--W);
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: var(--teletext);
   font-size: 15px;
   padding: 6px 10px;
   outline: none;
@@ -226,7 +312,7 @@ html, body, #root {
   background: var(--C);
   color: var(--K);
   border: none;
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: var(--teletext);
   font-size: 15px;
   font-weight: bold;
   padding: 8px 20px;
@@ -262,7 +348,7 @@ html, body, #root {
   background: none;
   border: 1px solid var(--C);
   color: var(--C);
-  font-family: 'Monaco', monospace;
+  font-family: var(--teletext);
   font-size: 11px;
   padding: 2px 8px;
   cursor: pointer;

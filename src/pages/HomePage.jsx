@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import CeefaxHeader from '../components/CeefaxHeader'
+import CeefaxMascot from '../components/CeefaxMascot'
+import Fastext from '../components/Fastext'
 
 export default function HomePage() {
   const [stories, setStories] = useState([])
@@ -26,30 +28,19 @@ export default function HomePage() {
     </div>
   )
 
+  const first = stories[0]?.page_number ?? 101
+  const last = stories[stories.length - 1]?.page_number ?? 101
+
   return (
     <div className="ceefax-page">
       <CeefaxHeader page="100" sub="NMR NEWS  —  GOOD NEWS IN GAMES" />
 
       <div className="ceefax-content">
-        <div className="index-graphic">
-          <pre style={{ color:'var(--C)', fontSize:11, lineHeight:1.2, margin:0 }}>
-{`  WW  WW  WW  WWW
-  W W W  W W  W
-  W W W  WWW  WW
-  W W W  W W  W
-  WW  WW  W W  WWW
-
-   CCC EEE EEE FFF
-  C    E   E   F
-  C    EE  EE  FF
-  C    E   E   F
-   CCC EEE EEE F`}
-          </pre>
-        </div>
+        <CeefaxMascot />
 
         <div className="index-stories">
-          <div className="ceefax-hl-cyan">NMR NEWS INDEX</div>
-          <div className="ceefax-hl-yellow">GOOD NEWS IN GAMES</div>
+          <div className="ceefax-hl-cyan">NMR NEWS</div>
+          <div className="ceefax-hl-yellow">GOOD GAMES NEWS</div>
 
           {stories.map(s => (
             <div key={s.page_number} className="index-story-row" onClick={() => navigate(`/story/${s.page_number}`)}>
@@ -59,29 +50,21 @@ export default function HomePage() {
             </div>
           ))}
 
-          <div style={{ marginTop: 16 }}>
-            {session ? (
-              <span className="ceefax-flash cyan" style={{cursor:'pointer'}} onClick={() => navigate('/admin')}>
-                ADMIN P199
-              </span>
-            ) : (
-              <span className="ceefax-flash cyan" style={{cursor:'pointer'}} onClick={() => navigate('/admin')}>
-                ADMIN P199
-              </span>
-            )}
-            {session && (
-              <span className="ceefax-flash red" style={{cursor:'pointer', marginLeft:8}}
+          {session && (
+            <div style={{ marginTop: 12 }}>
+              <span className="ceefax-flash red" style={{cursor:'pointer'}}
                 onClick={() => supabase.auth.signOut()}>LOGOUT</span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="ceefax-footer">
-        <Link to="/">INDEX P100</Link>
-        <span className="hint">NMR NEWS INDEX</span>
-        <span className="next">{stories.length} STORIES</span>
-      </div>
+      <Fastext links={[
+        { color: 'red',    label: 'HEADLINES', to: `/story/${first}` },
+        { color: 'green',  label: 'ADMIN',     to: '/admin' },
+        { color: 'yellow', label: 'LATEST',    to: `/story/${last}` },
+        { color: 'cyan',   label: 'INDEX',     to: '/' },
+      ]} />
     </div>
   )
 }

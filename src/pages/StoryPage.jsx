@@ -2,15 +2,24 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import CeefaxHeader from '../components/CeefaxHeader'
+import CeefaxMascot from '../components/CeefaxMascot'
+import Fastext from '../components/Fastext'
+
+// The local reference PNGs are full-page screenshots, not mosaic graphics —
+// never show one shrunk into the graphic column. Real external images are fine.
+const isFullPageShot = url => /\/ceefax-(p\d+|indie)\.png$/i.test(url || '')
 
 export default function StoryPage() {
   const { pageNum } = useParams()
   const [story, setStory] = useState(null)
+  const [pages, setPages] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     supabase.from('ceefax_stories').select('*').eq('page_number', pageNum).single()
       .then(({ data }) => { if (data) setStory(data); setLoading(false) })
+    supabase.from('ceefax_stories').select('page_number').order('page_number')
+      .then(({ data }) => { if (data) setPages(data.map(p => p.page_number)) })
   }, [pageNum])
 
   if (loading) return (
@@ -32,7 +41,11 @@ export default function StoryPage() {
     </div>
   )
 
-  const nextPn = story.page_number >= 111 ? 101 : story.page_number + 1
+  // prev / next around the current page, wrapping within the real story list
+  const idx = pages.indexOf(story.page_number)
+  const prevPn = pages.length ? pages[(idx - 1 + pages.length) % pages.length] : story.page_number
+  const nextPn = pages.length ? pages[(idx + 1) % pages.length] : story.page_number
+  const showImage = story.image_url && !isFullPageShot(story.image_url)
 
   return (
     <div className="ceefax-page">
@@ -40,23 +53,12 @@ export default function StoryPage() {
         sub={`NMR NEWS  —  ${story.category}  —  ${story.title.toUpperCase().slice(0,40)}`} />
 
       <div className="ceefax-content">
-        {story.image_url ? (
+        {showImage ? (
           <div className="ceefax-graphic">
             <img src={story.image_url} alt="" />
           </div>
         ) : (
-          <div className="ceefax-graphic">
-            <pre style={{color:'var(--C)',fontSize:10,lineHeight:1.1,margin:0}}>
-{` KKKKKKKKKKKKKKKKKKKKK
- KKKKKK  WWW  KKKKKKK
- KKKKKK WCCCW KKKKKKK
- KKKKK WWWWWWW KKKKKK
- KKKKK WCCCCCW KKKKKK
- KKKKK WCCWCW KKKKKKK
- KKKKK WWWWWWW KKKKKK
- KKKKKKK WWW KKKKKKKK`}
-            </pre>
-          </div>
+          <CeefaxMascot />
         )}
 
         <div className="ceefax-text">
@@ -77,11 +79,12 @@ export default function StoryPage() {
         </div>
       </div>
 
-      <div className="ceefax-footer">
-        <Link to="/">INDEX P100</Link>
-        <span className="hint">NMR NEWS — P{story.page_number}</span>
-        <Link to={`/story/${nextPn}`} className="next">P{nextPn}  NEXT</Link>
-      </div>
+      <Fastext links={[
+        { color: 'red',    label: 'INDEX', to: '/' },
+        { color: 'green',  label: `PREV`,  to: `/story/${prevPn}` },
+        { color: 'yellow', label: `NEXT`,  to: `/story/${nextPn}` },
+        { color: 'cyan',   label: 'ADMIN', to: '/admin' },
+      ]} />
     </div>
   )
 }
