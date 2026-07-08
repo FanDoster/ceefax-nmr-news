@@ -3,146 +3,242 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CEEFAX NMR NEWS — P400 WEATHER</title>
+  <title>CEEFAX NMR NEWS — P401 WEATHER</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .wx-title { color: var(--C); font-size: var(--font-size); line-height: var(--cell-h); padding: 10px 14px 0; }
-    .wx-sub { color: var(--G); font-size: 14px; padding: 2px 14px 8px; }
-    /* Two columns of UK cities, filled top-to-bottom like the old weather page */
-    .wx-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: repeat(8, auto);
-      grid-auto-flow: column;
-      gap: 3px 26px;
-      padding: 4px 14px 12px;
-    }
-    .wx-row {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
+    .wx-banner {
+      background: var(--B);
+      color: var(--W);
+      text-align: center;
       font-size: var(--font-size);
       line-height: var(--cell-h);
+      padding: 3px 2px;
     }
-    .wx-city { color: var(--C); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .wx-temp { color: var(--Y); width: 4ch; text-align: right; flex-shrink: 0; }
-    .wx-cond { width: 8ch; flex-shrink: 0; text-transform: uppercase; }
-    .wx-cond.sun   { color: var(--Y); }
-    .wx-cond.cloud { color: var(--W); }
-    .wx-cond.rain  { color: var(--C); }
-    .wx-cond.snow  { color: var(--W); }
-    .wx-cond.fog   { color: var(--W); }
-    .wx-cond.storm { color: var(--M); }
-    .wx-msg { color: var(--Y); padding: 24px 14px; font-size: var(--font-size); }
+    .wx-body { position: relative; padding: 4px 8px; min-height: 470px; }
+    .wx-count { position: absolute; top: 4px; right: 14px; color: var(--W); font-size: var(--font-size); }
+    .wx-cond { position: absolute; top: 150px; left: 14px; color: var(--C); font-size: 26px; }
+    .wx-map { display: flex; justify-content: center; }
+    .wx-map-wrap { position: relative; width: 384px; }
+    .wx-map-svg { width: 384px; height: auto; display: block; image-rendering: pixelated; }
+    /* temperature labels overlaid on the map — white on a black box */
+    .wx-t {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      color: var(--W);
+      background: var(--K);
+      font-size: 17px;
+      line-height: 1.1;
+      padding: 0 2px;
+    }
+    .wx-source {
+      background: var(--B);
+      color: var(--W);
+      text-align: center;
+      font-size: var(--font-size);
+      line-height: var(--cell-h);
+      padding: 3px 2px;
+    }
+    .ceefax-fastext .fx { cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="ceefax-page">
-    <div id="header"></div>
-    <div id="content"><div class="ceefax-loading">LOADING...</div></div>
+    <div class="ceefax-mast">
+      <span class="m-page" id="cx-pagenum">P401</span>
+      <span class="m-service">CEEFAX NMR <span id="cx-svcpage">401</span></span>
+      <span class="m-date" id="cx-date"></span>
+      <span class="ceefax-clock" id="cx-clock"></span>
+    </div>
+    <div class="wx-banner" id="wx-banner">Weather</div>
+    <div class="wx-body" id="wx-body"><div class="ceefax-loading">LOADING...</div></div>
+    <div class="wx-source">Data from Open-Meteo</div>
     <div class="ceefax-fastext" id="fastext"></div>
   </div>
 
-  <!-- No Supabase needed — weather comes from Open-Meteo (free, no key). -->
+  <!-- No Supabase — weather is from Open-Meteo (free, no key). -->
   <script src="/common.js"></script>
   <script>
-    CX.renderHeader('400', 'WEATHER', 'LATEST UK WEATHER')
-    var stopScan = CX.scanPage('400')
+    var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    var DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    function p2(n) { return String(n).padStart(2, '0') }
 
-    // A spread of UK cities, like the old Ceefax weather list.
-    var CITIES = [
-      { name: 'LONDON',     lat: 51.51, lon: -0.13 },
-      { name: 'BIRMINGHAM', lat: 52.48, lon: -1.90 },
-      { name: 'MANCHESTER', lat: 53.48, lon: -2.24 },
-      { name: 'LEEDS',      lat: 53.80, lon: -1.55 },
-      { name: 'LIVERPOOL',  lat: 53.41, lon: -2.99 },
-      { name: 'NEWCASTLE',  lat: 54.98, lon: -1.61 },
-      { name: 'SHEFFIELD',  lat: 53.38, lon: -1.47 },
-      { name: 'BRISTOL',    lat: 51.45, lon: -2.59 },
-      { name: 'NOTTINGHAM', lat: 52.95, lon: -1.15 },
-      { name: 'NORWICH',    lat: 52.63, lon:  1.30 },
-      { name: 'CARDIFF',    lat: 51.48, lon: -3.18 },
-      { name: 'PLYMOUTH',   lat: 50.38, lon: -4.14 },
-      { name: 'EDINBURGH',  lat: 55.95, lon: -3.19 },
-      { name: 'GLASGOW',    lat: 55.86, lon: -4.25 },
-      { name: 'ABERDEEN',   lat: 57.15, lon: -2.09 },
-      { name: 'BELFAST',    lat: 54.60, lon: -5.93 },
+    function tick() {
+      var t = new Date()
+      var d = document.getElementById('cx-date'), c = document.getElementById('cx-clock')
+      if (d) d.textContent = DAYS[t.getDay()] + ' ' + p2(t.getDate()) + ' ' + MONTHS[t.getMonth()]
+      if (c) c.textContent = p2(t.getHours()) + ':' + p2(t.getMinutes()) + '/' + p2(t.getSeconds())
+    }
+    tick(); setInterval(tick, 1000)
+    var stopScan = CX.scanPage('401')
+
+    // ---- The UK + Ireland as a teletext mosaic ----
+    // Rasterised from Natural Earth 50m boundaries. '#' = land, projected in this
+    // lat/lon bounding box so a city's grid position comes straight from its coords.
+    var UK_COLS = 40, UK_ROWS = 47
+    var UK_BBOX = { w: -11.0, e: 2.0, s: 49.9, n: 58.8 }
+    var UK = [
+      "                                        ",
+      "                  ######                ",
+      "             ##   ######                ",
+      "            ##   ######                 ",
+      "             #    ####                  ",
+      "                ######                  ",
+      "              # ############            ",
+      "             ## ############            ",
+      "                 ###########            ",
+      "                ###########             ",
+      "                ###########             ",
+      "                # ########              ",
+      "                 #######                ",
+      "                 #########              ",
+      "                  #### #                ",
+      "              ##   ########             ",
+      "                ## #########            ",
+      "                ## ##########           ",
+      "           #       ##########           ",
+      "        #######   ###########           ",
+      "        ########  ##### ######          ",
+      "       #########       #######          ",
+      "         #######       #########        ",
+      "       ##########      #########        ",
+      "   #############        #########       ",
+      "  ############           ########       ",
+      "    ###########          #########      ",
+      "    ###########         ##########      ",
+      "   ############     #   ##########      ",
+      "      #########     ###############     ",
+      "     ##########     ##############      ",
+      "     ##########      #################  ",
+      "     ##########      ################## ",
+      "    ##########       ################## ",
+      "    ##########       ################## ",
+      "   ########        #################### ",
+      "  #######         ####################  ",
+      "   #####          #  ################   ",
+      "                      ## ###########    ",
+      "                         #############  ",
+      "                     #################  ",
+      "                    #################   ",
+      "                    #########           ",
+      "                   ####                 ",
+      "                  #####                 ",
+      "                 ##                     ",
+      "                                        ",
     ]
-
-    // WMO weather code -> Ceefax-style condition word + colour class.
-    function condition(code) {
-      if (code === 0) return { text: 'CLEAR', cls: 'sun' }
-      if (code <= 2)  return { text: 'SUNNY', cls: 'sun' }
-      if (code === 3) return { text: 'CLOUDY', cls: 'cloud' }
-      if (code === 45 || code === 48) return { text: 'FOG', cls: 'fog' }
-      if (code >= 51 && code <= 57) return { text: 'DRIZZLE', cls: 'rain' }
-      if (code >= 61 && code <= 67) return { text: 'RAIN', cls: 'rain' }
-      if (code >= 71 && code <= 77) return { text: 'SNOW', cls: 'snow' }
-      if (code >= 80 && code <= 82) return { text: 'SHOWERS', cls: 'rain' }
-      if (code >= 85 && code <= 86) return { text: 'SNOW', cls: 'snow' }
-      if (code >= 95) return { text: 'THUNDER', cls: 'storm' }
-      return { text: 'CLOUDY', cls: 'cloud' }
+    function mapSVG() {
+      var rects = ''
+      for (var r = 0; r < UK.length; r++) {
+        for (var c = 0; c < UK[r].length; c++) {
+          if (UK[r][c] !== ' ') {
+            rects += '<rect x="' + (c + 0.12) + '" y="' + (r + 0.12) + '" width="0.76" height="0.76" fill="var(--C)"/>'
+          }
+        }
+      }
+      return '<svg viewBox="0 0 ' + UK_COLS + ' ' + UK_ROWS + '" class="wx-map-svg" shape-rendering="crispEdges">' + rects + '</svg>'
+    }
+    // A city's lat/lon -> percentage position over the map.
+    function pos(lat, lon) {
+      return {
+        left: ((lon - UK_BBOX.w) / (UK_BBOX.e - UK_BBOX.w) * 100).toFixed(1),
+        top: ((UK_BBOX.n - lat) / (UK_BBOX.n - UK_BBOX.s) * 100).toFixed(1),
+      }
     }
 
+    var SPOTS = [
+      { name: 'INVERNESS',  lat: 57.48, lon: -4.22 },
+      { name: 'ABERDEEN',   lat: 57.15, lon: -2.09 },
+      { name: 'GLASGOW',    lat: 55.86, lon: -4.25 },
+      { name: 'NEWCASTLE',  lat: 54.98, lon: -1.61 },
+      { name: 'BELFAST',    lat: 54.60, lon: -5.93 },
+      { name: 'MANCHESTER', lat: 53.48, lon: -2.24 },
+      { name: 'NORWICH',    lat: 52.63, lon:  1.30 },
+      { name: 'BIRMINGHAM', lat: 52.48, lon: -1.90 },
+      { name: 'CARDIFF',    lat: 51.48, lon: -3.18 },
+      { name: 'LONDON',     lat: 51.51, lon: -0.13 },
+      { name: 'PLYMOUTH',   lat: 50.38, lon: -4.14 },
+    ]
+
+    function condWord(code) {
+      if (code === 0) return 'Clear'
+      if (code <= 2) return 'Sunny'
+      if (code === 3) return 'Cloudy'
+      if (code === 45 || code === 48) return 'Fog'
+      if (code >= 51 && code <= 57) return 'Drizzle'
+      if (code >= 61 && code <= 67) return 'Rain'
+      if (code >= 71 && code <= 77) return 'Snow'
+      if (code >= 80 && code <= 82) return 'Showers'
+      if (code >= 85 && code <= 86) return 'Snow'
+      if (code >= 95) return 'Thunder'
+      return 'Cloudy'
+    }
+    function modal(arr) {
+      var counts = {}, best = arr[0], bestN = 0
+      arr.forEach(function (v) { counts[v] = (counts[v] || 0) + 1; if (counts[v] > bestN) { bestN = counts[v]; best = v } })
+      return best
+    }
+
+    var forecast = {}, dayNames = [], day = 0
+
+    function render() {
+      document.getElementById('wx-banner').textContent = 'Weather for ' + (dayNames[day] || '')
+      var codes = []
+      var labels = SPOTS.map(function (s) {
+        var f = forecast[s.name]
+        if (!f) return ''
+        codes.push(f.code[day])
+        var p = pos(s.lat, s.lon)
+        return '<span class="wx-t" style="left:' + p.left + '%;top:' + p.top + '%">' + f.max[day] + '</span>'
+      }).join('')
+
+      document.getElementById('wx-body').innerHTML =
+        '<div class="wx-count">' + (day + 1) + '/3</div>' +
+        '<div class="wx-cond">' + (codes.length ? condWord(modal(codes)) : '') + '</div>' +
+        '<div class="wx-map"><div class="wx-map-wrap">' + mapSVG() + labels + '</div></div>'
+    }
+
+    function showDay(d) { day = Math.max(0, Math.min(2, d)); render() }
+
     function wxFastext() {
-      CX.renderFastext([
-        { color: 'red',    label: 'INDEX',     href: '/' },
-        { color: 'green',  label: 'HEADLINES', href: '/story.html?p=101' },
-        { color: 'yellow', label: 'REFRESH',   href: '/weather.html' },
-        { color: 'cyan',   label: 'ADMIN',     href: '/admin.html' },
-      ])
+      var host = document.getElementById('fastext')
+      host.innerHTML =
+        '<span class="fx red" id="wx-prev"><span class="lbl">- YESTERDAY</span></span>' +
+        '<span class="fx green" id="wx-next"><span class="lbl">+ NEXT DAY</span></span>' +
+        '<a class="fx cyan" href="/"><span class="lbl">INDEX</span></a>'
+      document.getElementById('wx-prev').onclick = function () { showDay(day - 1) }
+      document.getElementById('wx-next').onclick = function () { showDay(day + 1) }
     }
 
     ;(async function () {
-      var content = document.getElementById('content')
-      var lats = CITIES.map(function (c) { return c.lat }).join(',')
-      var lons = CITIES.map(function (c) { return c.lon }).join(',')
-      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lats +
-        '&longitude=' + lons + '&current=temperature_2m,weather_code&timezone=Europe%2FLondon'
+      var lats = SPOTS.map(function (s) { return s.lat }).join(',')
+      var lons = SPOTS.map(function (s) { return s.lon }).join(',')
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lats + '&longitude=' + lons +
+        '&daily=temperature_2m_max,weather_code&forecast_days=3&timezone=Europe%2FLondon'
 
       var data = null
       try {
-        // Hold the page-acquisition scan for at least 1s, like a real page load.
-        var results = await Promise.all([
-          fetch(url).then(function (r) { return r.json() }),
-          CX.delay(1000),
-        ])
-        data = results[0]
-      } catch (e) {
-        data = null
-      }
+        var res = await Promise.all([fetch(url).then(function (r) { return r.json() }), CX.delay(1000)])
+        data = res[0]
+      } catch (e) { data = null }
       stopScan()
 
       if (!data) {
-        CX.setStatus('WEATHER OFF AIR')
-        content.innerHTML = '<div class="wx-msg">Weather data is off air.<br>Press REFRESH to try again.</div>'
+        document.getElementById('wx-banner').textContent = 'Weather off air'
+        document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading" style="animation:none">NO DATA — PRESS INDEX</div>'
         wxFastext()
         return
       }
 
       var arr = Array.isArray(data) ? data : [data]
-      var rows = CITIES.map(function (c, i) {
-        var cur = arr[i] && arr[i].current
-        if (!cur) return ''
-        var temp = Math.round(cur.temperature_2m)
-        var cond = condition(cur.weather_code)
-        return '<div class="wx-row">' +
-          '<span class="wx-city">' + CX.escapeHTML(c.name) + '</span>' +
-          '<span class="wx-temp">' + temp + 'C</span>' +
-          '<span class="wx-cond ' + cond.cls + '">' + cond.text + '</span>' +
-          '</div>'
-      }).join('')
+      SPOTS.forEach(function (s, i) {
+        var dd = arr[i] && arr[i].daily
+        if (dd) forecast[s.name] = { max: dd.temperature_2m_max.map(Math.round), code: dd.weather_code }
+      })
+      var times = (arr[0] && arr[0].daily && arr[0].daily.time) || []
+      dayNames = times.map(function (t) { return DAYS_FULL[new Date(t + 'T12:00:00').getDay()] })
 
-      var now = new Date()
-      var hh = String(now.getHours()).padStart(2, '0')
-      var mm = String(now.getMinutes()).padStart(2, '0')
-
-      content.innerHTML =
-        '<div class="wx-title">UK WEATHER — CURRENT CONDITIONS</div>' +
-        '<div class="wx-sub">UPDATED ' + hh + ':' + mm + '  —  TEMPERATURES IN &deg;C</div>' +
-        '<div class="wx-grid">' + rows + '</div>'
-
+      render()
       wxFastext()
     })()
   </script>
