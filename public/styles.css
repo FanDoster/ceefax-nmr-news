@@ -128,7 +128,7 @@ html.crt-boot body::after {
 /* On power-on, the picture fades up slowly behind the flash rather than just
    being uncovered — the tube warming to full brightness. */
 html.crt-boot .ceefax-page {
-  animation: crt-fade-in 1.6s ease-out both;
+  animation: crt-fade-in 2.4s ease-out both;
 }
 @keyframes crt-fade-in {
   0%   { opacity: 0; }
