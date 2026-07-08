@@ -202,7 +202,7 @@
     // + LOADING for a beat, then draw the new day (data is already fetched).
     var loadTimer = null, loadStop = null
     function showDay(d) {
-      day = Math.max(0, Math.min(2, d))
+      day = (d + 3) % 3
       if (loadTimer) { clearTimeout(loadTimer); if (loadStop) loadStop() }
       document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading">LOADING...</div>'
       loadStop = CX.scanPage('401')
@@ -213,6 +213,19 @@
       }, 800)
     }
 
+    // Auto-cycle the three days, like a real teletext subpage carousel that
+    // rotates on a timer. Manual PREV/NEXT restart the countdown; a hidden tab
+    // pauses it so it isn't churning in the background.
+    var cycleTimer = null
+    function startCycle() {
+      if (cycleTimer) clearInterval(cycleTimer)
+      cycleTimer = setInterval(function () { showDay(day + 1) }, 15000)
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { clearInterval(cycleTimer); cycleTimer = null }
+      else startCycle()
+    })
+
     function wxFastext() {
       var host = document.getElementById('fastext')
       host.innerHTML =
@@ -220,8 +233,8 @@
         '<span class="fx green" id="wx-next"><span class="lbl">+ NEXT</span></span>' +
         '<a class="fx yellow" href="/cities.html"><span class="lbl">CITIES</span></a>' +
         '<a class="fx cyan" href="/"><span class="lbl">HEADLINES</span></a>'
-      document.getElementById('wx-prev').onclick = function () { showDay(day - 1) }
-      document.getElementById('wx-next').onclick = function () { showDay(day + 1) }
+      document.getElementById('wx-prev').onclick = function () { showDay(day - 1); startCycle() }
+      document.getElementById('wx-next').onclick = function () { showDay(day + 1); startCycle() }
     }
 
     ;(async function () {
@@ -254,6 +267,7 @@
 
       render()
       wxFastext()
+      startCycle()
     })()
   </script>
 </body>
