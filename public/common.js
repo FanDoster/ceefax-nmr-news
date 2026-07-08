@@ -9,7 +9,9 @@
   var SUPABASE_KEY = 'sb_publishable_xnmYKAnVN0osPPz0hIsxfA_3tjaCea5'
 
   // window.supabase is the library global provided by the CDN <script>.
-  var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  // Pages that don't need data (e.g. the 404 page) can skip loading the CDN;
+  // guard so common.js still provides the header/FASTEXT helpers without it.
+  var db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null
 
   var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

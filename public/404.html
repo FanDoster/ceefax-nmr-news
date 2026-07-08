@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS — P404 NOT FOUND</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* Test-card colour bars — the classic "off air" TV look */
+    .bars {
+      display: flex;
+      width: 192px;
+      height: 44px;
+      margin-top: 12px;
+      border: 2px solid var(--W);
+    }
+    .bars span { flex: 1; }
+    /* Blinking OFF AIR caption */
+    .offair {
+      color: var(--R);
+      text-align: center;
+      font-size: var(--font-size);
+      letter-spacing: 2px;
+      margin-top: 8px;
+      animation: blink 1s steps(1) infinite;
+    }
+    /* The teletext "searching for a page" counter that never settles */
+    .searching {
+      color: var(--C);
+      letter-spacing: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+
+    <div class="ceefax-content">
+      <div class="ceefax-graphic">
+        <div id="big404"></div>
+        <div class="offair">OFF AIR</div>
+        <div class="bars">
+          <span style="background:var(--W)"></span>
+          <span style="background:var(--Y)"></span>
+          <span style="background:var(--C)"></span>
+          <span style="background:var(--G)"></span>
+          <span style="background:var(--M)"></span>
+          <span style="background:var(--R)"></span>
+          <span style="background:var(--B)"></span>
+        </div>
+      </div>
+
+      <div class="ceefax-text">
+        <div class="ceefax-hl-cyan">PAGE NOT FOUND</div>
+        <div class="ceefax-hl-yellow">ERROR 404</div>
+        <div class="ceefax-body">The page you requested is not held in this magazine.</div>
+        <div class="ceefax-body">Perhaps it rotated out of the carousel. Perhaps you mistyped it. Perhaps it was never broadcast at all.</div>
+        <div class="ceefax-body searching" id="searching">SEARCHING  4&bull;&bull;</div>
+        <div class="ceefax-body">Press a coloured button below to return to safety.</div>
+      </div>
+    </div>
+
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <!-- No Supabase needed here — common.js guards its client init. -->
+  <script src="/common.js"></script>
+  <script>
+    CX.renderHeader('404', 'CEEFAX — PAGE NOT FOUND — PRESS 100 FOR INDEX')
+
+    // Build the big "404" block graphic (same chunky teletext letters as the logo)
+    var glyphs = [
+      { color: 'var(--R)', rows: ['10010', '10010', '11111', '00010', '00010'] }, // 4
+      { color: 'var(--Y)', rows: ['01110', '10001', '10001', '10001', '01110'] }, // 0
+      { color: 'var(--C)', rows: ['10010', '10010', '11111', '00010', '00010'] }, // 4
+    ]
+    var LW = 5, GAP = 1, rects = ''
+    glyphs.forEach(function (g, gi) {
+      var xOff = gi * (LW + GAP)
+      g.rows.forEach(function (row, y) {
+        row.split('').forEach(function (cell, x) {
+          if (cell === '1') {
+            rects += '<rect x="' + (xOff + x) + '" y="' + y + '" width="1" height="1" fill="' + g.color + '"/>'
+          }
+        })
+      })
+    })
+    var w = glyphs.length * LW + (glyphs.length - 1) * GAP
+    document.getElementById('big404').innerHTML =
+      '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="404">' + rects + '</svg>'
+
+    // Authentic teletext touch: a page number that rolls forever and never finds the page
+    var s = document.getElementById('searching')
+    setInterval(function () {
+      s.textContent = 'SEARCHING  4' + Math.floor(Math.random() * 10) + Math.floor(Math.random() * 10)
+    }, 90)
+
+    // FASTEXT — the RANDOM button jumps to a real story page
+    var rnd = 101 + Math.floor(Math.random() * 11)
+    CX.renderFastext([
+      { color: 'red',    label: 'INDEX',     href: '/' },
+      { color: 'green',  label: 'HEADLINES', href: '/story.html?p=101' },
+      { color: 'yellow', label: 'RANDOM',    href: '/story.html?p=' + rnd },
+      { color: 'cyan',   label: 'ADMIN',     href: '/admin.html' },
+    ])
+  </script>
+</body>
+</html>
