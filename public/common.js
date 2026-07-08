@@ -298,17 +298,16 @@
   }
   document.addEventListener('keydown', onKeyNav)
 
-  // === Responsive fallback — the design is a fixed 640px "screen"; on narrower
-  // viewports scale the whole page down to fit rather than overflowing. `zoom`
-  // scales layout (unlike transform) so scrolling and the fixed bars still
-  // behave. ===
+  // === Scale the fixed 640px "screen" to fill the window width — zoom up on
+  // wide screens, down on narrow ones. `zoom` scales layout (unlike transform)
+  // so scrolling and the fixed bars still behave. ===
   function fitViewport() {
     if (!document.body) return
-    // Measure the root element's width — it's the true viewport width and,
-    // unlike window.innerWidth, is unaffected by the zoom we set on <body>
-    // (so it never feeds back on itself).
+    // Measure the root element's width — it's the true window width and, unlike
+    // window.innerWidth, is unaffected by the zoom we set on <body> (so it never
+    // feeds back on itself).
     var w = document.documentElement.clientWidth
-    document.body.style.zoom = w < 640 ? (w / 640) : ''
+    document.body.style.zoom = w / 640
   }
   window.addEventListener('resize', fitViewport)
 
