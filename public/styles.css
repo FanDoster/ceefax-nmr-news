@@ -162,20 +162,19 @@ html, body {
 
 /* === CONTENT AREA === */
 .ceefax-content {
-  padding: 14px 14px 0 220px;
+  padding: 14px 14px 0 14px;
   display: flex;
   gap: 0;
+  align-items: flex-start;
 }
 
-/* Mosaic graphic column (left) — stays in place when scrolling */
+/* Mosaic graphic column (left) — stays in place when scrolling past it */
 .ceefax-graphic {
   width: 192px;
   flex-shrink: 0;
   image-rendering: pixelated;
-  position: fixed;
-  left: 14px;
-  top: 118px;
-  height: fit-content;
+  position: sticky;
+  top: 112px; /* just below the sticky header */
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
