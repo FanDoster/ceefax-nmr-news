@@ -302,7 +302,7 @@
   // wide screens, down on narrow ones, capped so the text never gets oversized
   // (beyond the cap it stays centred with margins). `zoom` scales layout (unlike
   // transform) so scrolling and the fixed bars still behave. ===
-  var MAX_ZOOM = 1.5
+  var MAX_ZOOM = 2.0
   function fitViewport() {
     if (!document.body) return
     // Measure the root element's width — it's the true window width and, unlike
