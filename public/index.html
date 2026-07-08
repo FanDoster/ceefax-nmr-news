@@ -32,7 +32,7 @@
       var host = document.getElementById('stories')
       // Hold LOADING... for at least 1s, even if the fetch returns sooner.
       var results = await Promise.all([
-        CX.db.from('ceefax_stories').select('page_number, title, category').order('page_number'),
+        CX.db.from('ceefax_stories').select('page_number, title, category').order('page_number', { ascending: false }),
         CX.delay(1000),
       ])
       stopScan()
