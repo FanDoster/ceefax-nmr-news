@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS — P100</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+
+    <div class="ceefax-content">
+      <div class="ceefax-graphic">
+        <img src="/images/ceefax-indie.png" alt="NMR News mascot" class="mascot-img" />
+        <div class="mascot-caption">GOOD NEWS</div>
+      </div>
+
+      <div class="index-stories">
+        <div class="ceefax-hl-cyan">NMR NEWS</div>
+        <div class="ceefax-hl-yellow">GOOD GAMES NEWS</div>
+        <div id="stories"><div class="ceefax-loading">LOADING...</div></div>
+      </div>
+    </div>
+
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/common.js"></script>
+  <script>
+    CX.renderHeader('100', 'NMR NEWS  —  GOOD NEWS IN GAMES')
+
+    ;(async function () {
+      var host = document.getElementById('stories')
+      var res = await CX.db
+        .from('ceefax_stories')
+        .select('page_number, title, category')
+        .order('page_number')
+
+      if (res.error || !res.data) {
+        host.innerHTML = '<div class="ceefax-body">Could not load stories.</div>'
+        return
+      }
+      var stories = res.data
+
+      host.innerHTML = stories.map(function (s) {
+        return '<a class="index-story-row" href="/story.html?p=' + s.page_number + '">' +
+          '<span class="index-pn">P' + s.page_number + '</span>' +
+          '<span class="index-cat">' + CX.escapeHTML(s.category) + '</span>' +
+          '<span class="index-title">' + CX.escapeHTML(s.title) + '</span>' +
+          '</a>'
+      }).join('')
+
+      var first = stories.length ? stories[0].page_number : 101
+      var last = stories.length ? stories[stories.length - 1].page_number : 101
+      CX.renderFastext([
+        { color: 'red',    label: 'HEADLINES', href: '/story.html?p=' + first },
+        { color: 'green',  label: 'ADMIN',     href: '/admin.html' },
+        { color: 'yellow', label: 'LATEST',    href: '/story.html?p=' + last },
+        { color: 'cyan',   label: 'INDEX',     href: '/' },
+      ])
+    })()
+  </script>
+</body>
+</html>

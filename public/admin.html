@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS — P199 ADMIN</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+    <div id="app"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/common.js"></script>
+  <script>
+    var db = CX.db
+    var esc = CX.escapeHTML
+    var CATEGORIES = ['INDIE', 'AAA', 'ENVIRONMENT', 'EDUCATION', 'COMMUNITY',
+      'ACCESSIBILITY', 'TECHNOLOGY', 'CULTURE', 'GOVERNMENT']
+
+    var session = null
+    var editingId = null
+    var stories = []
+    var app = document.getElementById('app')
+
+    CX.renderHeader('199', 'ADMIN — SIGN IN TO MANAGE STORIES')
+
+    db.auth.getSession().then(function (res) { session = res.data.session; render() })
+    db.auth.onAuthStateChange(function (_e, s) { session = s; render() })
+
+    function msg(type, text) {
+      var el = document.getElementById('msg')
+      if (el) el.innerHTML = '<div class="ceefax-msg ' + type + '">' + esc(text) + '</div>'
+    }
+
+    function render() {
+      if (!session) renderLogin()
+      else { renderManager(); loadStories() }
+    }
+
+    /* ---------- Admin sign-in ----------
+       Login only — there is no public sign-up. Admin accounts are created in
+       the Supabase dashboard (Authentication → Users). Even so, the real
+       enforcement is the row-level security policy in supabase-setup.sql,
+       which restricts writes to the admin account; the UI gate alone is not
+       security (anyone can call the REST API directly). */
+    function renderLogin() {
+      CX.setStatus('ADMIN — SIGN IN TO MANAGE STORIES')
+      app.innerHTML =
+        '<div class="admin-form">' +
+          '<div class="ceefax-hl-yellow" style="margin-bottom:14px">ADMIN ACCESS</div>' +
+          '<div id="msg"></div>' +
+          '<form id="authForm">' +
+            '<div class="form-row"><label>Email</label><input type="email" id="email" required></div>' +
+            '<div class="form-row"><label>Password</label><input type="password" id="password" required></div>' +
+            '<button type="submit" class="btn-ceefax" id="authBtn">SIGN IN</button>' +
+          '</form>' +
+          '<div style="margin-top:24px"><a class="ceefax-flash cyan" href="/">INDEX P100</a></div>' +
+        '</div>'
+
+      document.getElementById('authForm').onsubmit = async function (e) {
+        e.preventDefault()
+        var res = await db.auth.signInWithPassword({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        })
+        if (res.error) msg('error', res.error.message)
+        // a successful sign-in fires onAuthStateChange, which re-renders.
+      }
+    }
+
+    /* ---------- Story manager ---------- */
+    function renderManager() {
+      CX.setStatus('STORY MANAGER — ADD AND EDIT NMR NEWS STORIES')
+      var options = CATEGORIES.map(function (c) { return '<option>' + c + '</option>' }).join('')
+      app.innerHTML =
+        '<div class="admin-form">' +
+          '<div class="ceefax-hl-cyan" id="formTitle">' + (editingId ? 'EDIT STORY' : 'NEW STORY') + '</div>' +
+          '<button class="btn-ceefax danger" style="float:right" id="logout">LOGOUT</button>' +
+          '<div id="msg"></div>' +
+          '<form id="storyForm" style="clear:both">' +
+            '<div class="form-row"><label>Page Number (101+)</label><input type="number" min="101" id="pageNumber" required></div>' +
+            '<div class="form-row"><label>Category</label><select id="category">' + options + '</select></div>' +
+            '<div class="form-row"><label>Title</label><input type="text" id="title" required></div>' +
+            '<div class="form-row"><label>Body (blank line = new paragraph)</label><textarea id="body" required></textarea></div>' +
+            '<div class="form-row"><label>Image URL (optional)</label><input type="text" id="imageUrl" placeholder="https://..."></div>' +
+            '<button type="submit" class="btn-ceefax" id="submitBtn">' + (editingId ? 'UPDATE STORY' : 'PUBLISH STORY') + '</button>' +
+            '<button type="button" class="btn-ceefax danger" id="cancelEdit" style="display:' + (editingId ? 'inline-block' : 'none') + '">CANCEL</button>' +
+          '</form>' +
+          '<div class="admin-story-list">' +
+            '<div class="ceefax-hl-cyan" style="font-size:18px;margin-bottom:8px">PUBLISHED STORIES</div>' +
+            '<div id="storyList"></div>' +
+          '</div>' +
+          '<div style="margin-top:20px"><a class="ceefax-flash cyan" href="/">INDEX P100</a></div>' +
+        '</div>' +
+        '<div class="ceefax-footer"><a href="/">INDEX P100</a><span class="hint">ADMIN — P199</span></div>'
+
+      document.getElementById('logout').onclick = function () { db.auth.signOut() }
+      document.getElementById('cancelEdit').onclick = function () { resetForm() }
+      document.getElementById('storyForm').onsubmit = handleSubmit
+      document.getElementById('storyList').onclick = onListClick
+      fillForm()
+    }
+
+    function currentEditing() {
+      return stories.filter(function (s) { return s.id === editingId })[0]
+    }
+
+    // Populate the form fields (used after render, e.g. when entering edit mode).
+    function fillForm() {
+      var s = currentEditing()
+      document.getElementById('pageNumber').value = s ? s.page_number : ''
+      document.getElementById('category').value = s ? s.category : 'INDIE'
+      document.getElementById('title').value = s ? s.title : ''
+      document.getElementById('body').value = s ? s.body : ''
+      document.getElementById('imageUrl').value = s ? (s.image_url || '') : ''
+    }
+
+    function resetForm() {
+      editingId = null
+      renderManager()
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault()
+      var pn = parseInt(document.getElementById('pageNumber').value, 10)
+      if (!pn || pn < 101) { msg('error', 'Page number must be 101+'); return }
+      var payload = {
+        page_number: pn,
+        title: document.getElementById('title').value,
+        body: document.getElementById('body').value,
+        category: document.getElementById('category').value,
+        image_url: document.getElementById('imageUrl').value || null,
+      }
+      var res = editingId
+        ? await db.from('ceefax_stories').update(payload).eq('id', editingId)
+        : await db.from('ceefax_stories').insert(payload)
+      if (res.error) { msg('error', res.error.message); return }
+      var wasEditing = editingId
+      editingId = null
+      renderManager()
+      msg('success', 'P' + pn + (wasEditing ? ' updated!' : ' published!'))
+      loadStories()
+    }
+
+    function onListClick(e) {
+      var btn = e.target.closest('button')
+      if (!btn) return
+      var id = Number(btn.getAttribute('data-id'))
+      if (btn.getAttribute('data-action') === 'edit') {
+        editingId = id
+        renderManager()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (btn.getAttribute('data-action') === 'del') {
+        if (confirm('Delete?')) {
+          db.from('ceefax_stories').delete().eq('id', id).then(loadStories)
+        }
+      }
+    }
+
+    async function loadStories() {
+      var res = await db.from('ceefax_stories').select('*').order('page_number')
+      if (res.data) stories = res.data
+      var list = document.getElementById('storyList')
+      if (!list) return
+      list.innerHTML = stories.map(function (s) {
+        return '<div class="admin-story-row">' +
+          '<span class="pn">P' + s.page_number + '</span>' +
+          '<span class="cat">' + esc(s.category) + '</span>' +
+          '<span class="title">' + esc(s.title) + '</span>' +
+          '<button data-action="edit" data-id="' + s.id + '">EDIT</button>' +
+          '<button class="del" data-action="del" data-id="' + s.id + '">DEL</button>' +
+          '</div>'
+      }).join('')
+    }
+  </script>
+</body>
+</html>

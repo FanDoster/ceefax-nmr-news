@@ -14,11 +14,21 @@ CREATE TABLE IF NOT EXISTS ceefax_stories (
 
 ALTER TABLE ceefax_stories ENABLE ROW LEVEL SECURITY;
 
--- Public read
+-- Public read — the site is a public news page, anyone can read stories.
 CREATE POLICY ceefax_stories_read ON ceefax_stories FOR SELECT USING (true);
 
--- Authenticated write (for admin via Supabase Auth)
+-- Admin-only write.
+-- IMPORTANT: replace the email below with YOUR Supabase admin account's email,
+-- then run this in the SQL editor. Only that signed-in user can create/edit/
+-- delete stories; every other user (even one who somehow signs up) is read-only.
+-- This DB policy — not the admin UI — is what actually secures the CRUD.
+-- To allow more than one admin, use: (auth.jwt() ->> 'email') IN ('a@x.com','b@y.com')
+DROP POLICY IF EXISTS ceefax_stories_write ON ceefax_stories;
 CREATE POLICY ceefax_stories_write ON ceefax_stories
   FOR ALL
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+  TO authenticated
+  USING      ( (auth.jwt() ->> 'email') = 'your-admin-email@example.com' )
+  WITH CHECK ( (auth.jwt() ->> 'email') = 'your-admin-email@example.com' );
+
+-- Recommended: also disable public sign-ups in the Supabase dashboard
+-- (Authentication → Sign In / Providers → turn off "Allow new users to sign up").

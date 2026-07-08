@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+    <div class="ceefax-content" id="content">
+      <div class="ceefax-text"><div class="ceefax-loading">LOADING...</div></div>
+    </div>
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/common.js"></script>
+  <script>
+    // The local reference PNGs are full-page screenshots, not mosaic graphics —
+    // never show one shrunk into the graphic column. Real external images are fine.
+    function isFullPageShot(url) { return /\/ceefax-(p\d+|indie)\.png$/i.test(url || '') }
+
+    function flashClass(cat) {
+      return { ENVIRONMENT: 'green', EDUCATION: 'magenta', CULTURE: 'magenta', GOVERNMENT: 'cyan' }[cat] || 'cyan'
+    }
+
+    var pnum = parseInt(new URLSearchParams(location.search).get('p'), 10)
+    CX.renderHeader(String(pnum || '1'), 'LOADING...')
+
+    function showNotFound() {
+      CX.setStatus('PAGE NOT FOUND')
+      document.getElementById('content').innerHTML =
+        '<div class="ceefax-text">' +
+          '<div class="ceefax-hl-yellow">PAGE NOT FOUND</div>' +
+          '<div class="ceefax-body">That Ceefax page does not exist.</div>' +
+          '<a class="ceefax-flash cyan" href="/">INDEX P100</a>' +
+        '</div>'
+      CX.renderFastext([
+        { color: 'red',  label: 'INDEX', href: '/' },
+        { color: 'cyan', label: 'ADMIN', href: '/admin.html' },
+      ])
+    }
+
+    ;(async function () {
+      if (!pnum) { showNotFound(); return }
+
+      var results = await Promise.all([
+        CX.db.from('ceefax_stories').select('*').eq('page_number', pnum).single(),
+        CX.db.from('ceefax_stories').select('page_number').order('page_number'),
+      ])
+      var story = results[0].data
+      var pages = (results[1].data || []).map(function (p) { return p.page_number })
+
+      if (!story) { showNotFound(); return }
+
+      var title = String(story.title || '').toUpperCase()
+      document.title = 'CEEFAX — P' + story.page_number + ' ' + title
+      CX.setStatus('NMR NEWS  —  ' + story.category + '  —  ' + title.slice(0, 40))
+
+      var date = new Date(story.created_at)
+        .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        .toUpperCase()
+
+      var showImage = story.image_url && !isFullPageShot(story.image_url)
+      var graphic = showImage
+        ? '<div class="ceefax-graphic"><img src="' + CX.escapeHTML(story.image_url) + '" alt=""></div>'
+        : CX.mascotHTML()
+
+      var body = String(story.body || '').split('\n\n').map(function (p) {
+        return '<div class="ceefax-body">' + CX.escapeHTML(p) + '</div>'
+      }).join('')
+
+      document.getElementById('content').innerHTML =
+        graphic +
+        '<div class="ceefax-text">' +
+          '<div class="ceefax-hl-cyan">' + CX.escapeHTML(title) + '</div>' +
+          '<div class="ceefax-hl-yellow">' + CX.escapeHTML(story.category) + ' — ' + date + '</div>' +
+          body +
+          '<div style="margin-top:12px"><span class="ceefax-flash ' + flashClass(story.category) + '">' +
+            CX.escapeHTML(story.category) + '</span></div>' +
+        '</div>'
+
+      var idx = pages.indexOf(story.page_number)
+      var prevPn = pages.length ? pages[(idx - 1 + pages.length) % pages.length] : story.page_number
+      var nextPn = pages.length ? pages[(idx + 1) % pages.length] : story.page_number
+      CX.renderFastext([
+        { color: 'red',    label: 'INDEX', href: '/' },
+        { color: 'green',  label: 'PREV',  href: '/story.html?p=' + prevPn },
+        { color: 'yellow', label: 'NEXT',  href: '/story.html?p=' + nextPn },
+        { color: 'cyan',   label: 'ADMIN', href: '/admin.html' },
+      ])
+    })()
+  </script>
+</body>
+</html>
