@@ -131,6 +131,7 @@
   //   row 3 — white description + the page number in yellow
   // `section` is the big banner title (e.g. a category); `desc` is the row-3 text.
   function renderHeader(page, section, desc) {
+    currentPage = String(page)
     document.getElementById('header').innerHTML =
       '<div class="ceefax-mast">' +
         '<span class="m-page" id="cx-pagenum">P' + escapeHTML(page) + '</span>' +
@@ -193,6 +194,76 @@
         '<span class="lbl">' + escapeHTML(l.label) + '</span></a>'
     }).join('')
   }
+
+  // === Teletext navigation: type a 3-digit page number, or press the coloured
+  // FASTEXT keys (R/G/Y/C), exactly like a real teletext remote. ===
+  var currentPage = ''      // the page number currently displayed (for restore)
+  var pageBuffer = ''       // digits typed so far
+  var pageBufferTimer = null
+
+  // Map a typed 3-digit page number to a URL. In-range story numbers go to the
+  // story page (which shows its own NOT FOUND for pages that aren't published),
+  // so tuning to a missing page behaves like the real magazine.
+  function pageURL(n) {
+    if (n === 100) return '/'
+    if (n === 199) return '/admin.html'
+    if (n === 300) return '/sport.html'
+    if (n === 401) return '/weather.html'
+    if (n === 402) return '/cities.html'
+    if (n === 404) return '/404.html'
+    return '/story.html?p=' + n
+  }
+
+  function showTypedPage() {
+    var el = document.getElementById('cx-pagenum')
+    // Fill the P-number with the digits typed so far, blanks for the rest.
+    if (el) el.textContent = 'P' + (pageBuffer + '   ').slice(0, 3)
+  }
+
+  function clearPageBuffer(restore) {
+    pageBuffer = ''
+    if (pageBufferTimer) { clearTimeout(pageBufferTimer); pageBufferTimer = null }
+    if (restore) {
+      var el = document.getElementById('cx-pagenum')
+      if (el) el.textContent = 'P' + currentPage
+    }
+  }
+
+  function typingInField() {
+    var el = document.activeElement
+    return !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)
+  }
+
+  function onKeyNav(e) {
+    if (typingInField() || e.metaKey || e.ctrlKey || e.altKey) return
+
+    // Coloured FASTEXT keys — red / green / yellow / cyan, like the remote.
+    // Click the rendered button so it works whether the bar navigates via a
+    // link or runs an onclick action (e.g. the weather day cycle).
+    var color = { r: 'red', g: 'green', y: 'yellow', c: 'cyan' }[e.key.toLowerCase()]
+    if (color) {
+      var btn = document.querySelector('#fastext .fx.' + color)
+      if (btn) { e.preventDefault(); btn.click() }
+      return
+    }
+
+    // Digit entry — accumulate three digits then tune to that page.
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault()
+      pageBuffer += e.key
+      showTypedPage()
+      if (pageBuffer.length === 3) {
+        var n = parseInt(pageBuffer, 10)
+        clearPageBuffer(false)
+        location.assign(pageURL(n))
+        return
+      }
+      // Abandon a half-typed number after a couple of seconds, like a real set.
+      if (pageBufferTimer) clearTimeout(pageBufferTimer)
+      pageBufferTimer = setTimeout(function () { clearPageBuffer(true) }, 2000)
+    }
+  }
+  document.addEventListener('keydown', onKeyNav)
 
   // Generic Ceefax-style story graphics (blocky SVGs in /images/graphics).
   var GRAPHICS = [

@@ -168,13 +168,15 @@ html, body {
   align-items: flex-start;
 }
 
-/* Mosaic graphic column (left) — stays in place when scrolling past it */
+/* Mosaic graphic column (left) — stays fixed in place while the story scrolls.
+   top matches the graphic's resting offset (112px header + 14px content pad) so
+   it sticks immediately with zero pre-stick travel. */
 .ceefax-graphic {
   width: 192px;
   flex-shrink: 0;
   image-rendering: pixelated;
   position: sticky;
-  top: 112px; /* just below the sticky header */
+  top: 126px;
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
