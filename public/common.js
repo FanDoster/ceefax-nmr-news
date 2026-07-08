@@ -299,15 +299,17 @@
   document.addEventListener('keydown', onKeyNav)
 
   // === Scale the fixed 640px "screen" to fill the window width — zoom up on
-  // wide screens, down on narrow ones. `zoom` scales layout (unlike transform)
-  // so scrolling and the fixed bars still behave. ===
+  // wide screens, down on narrow ones, capped so the text never gets oversized
+  // (beyond the cap it stays centred with margins). `zoom` scales layout (unlike
+  // transform) so scrolling and the fixed bars still behave. ===
+  var MAX_ZOOM = 1.5
   function fitViewport() {
     if (!document.body) return
     // Measure the root element's width — it's the true window width and, unlike
     // window.innerWidth, is unaffected by the zoom we set on <body> (so it never
     // feeds back on itself).
     var w = document.documentElement.clientWidth
-    document.body.style.zoom = w / 640
+    document.body.style.zoom = Math.min(w / 640, MAX_ZOOM)
   }
   window.addEventListener('resize', fitViewport)
 
