@@ -189,6 +189,25 @@ a:hover {
   margin-bottom: 12px;
 }
 
+/* Ceefax-style block graphic images */
+.ceefax-image-wrap {
+  margin: 16px 0;
+  border: 4px solid var(--ceefax-cyan);
+  display: inline-block;
+  box-shadow: 0 0 12px rgba(0,255,255,0.25);
+  background: var(--ceefax-black);
+  max-width: 100%;
+}
+
+.ceefax-image {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 100%;
+  height: auto;
+  max-width: 400px;
+}
+
 /* Colour bars / flashes */
 .flash-cyan {
   background: var(--ceefax-cyan);

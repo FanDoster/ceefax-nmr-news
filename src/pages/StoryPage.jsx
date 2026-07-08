@@ -51,6 +51,11 @@ export default function StoryPage() {
         <div className="story-meta">
           {story.category} — {new Date(story.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
         </div>
+        {story.image_url && (
+          <div className="ceefax-image-wrap">
+            <img src={story.image_url} alt={story.title} className="ceefax-image" />
+          </div>
+        )}
         <div className="story-body">
           {story.body.split('\n\n').map((p, i) => (
             <p key={i}>{p}</p>

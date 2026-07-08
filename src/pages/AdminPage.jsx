@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [category, setCategory] = useState('INDIE')
+  const [imageUrl, setImageUrl] = useState('')
   const [stories, setStories] = useState([])
   const [editingId, setEditingId] = useState(null)
 
@@ -54,7 +55,7 @@ export default function AdminPage() {
       return
     }
 
-    const payload = { page_number: pn, title, body, category }
+    const payload = { page_number: pn, title, body, category, image_url: imageUrl || null }
 
     if (editingId) {
       const { error } = await supabase.from('ceefax_stories').update(payload).eq('id', editingId)
@@ -71,6 +72,7 @@ export default function AdminPage() {
     setTitle('')
     setBody('')
     setCategory('INDIE')
+    setImageUrl('')
     loadStories()
   }
 
@@ -80,6 +82,7 @@ export default function AdminPage() {
     setTitle(s.title)
     setBody(s.body)
     setCategory(s.category)
+    setImageUrl(s.image_url || '')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -169,6 +172,10 @@ export default function AdminPage() {
             <label>Body (blank line between paragraphs)</label>
             <textarea value={body} onChange={e => setBody(e.target.value)} required />
           </div>
+          <div className="form-group">
+            <label>Image URL (optional — Ceefax-style graphic)</label>
+            <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." />
+          </div>
           <button type="submit" className="btn-ceefax">
             {editingId ? 'UPDATE STORY' : 'PUBLISH STORY'}
           </button>
@@ -179,6 +186,7 @@ export default function AdminPage() {
               setTitle('')
               setBody('')
               setCategory('INDIE')
+              setImageUrl('')
             }}>
               CANCEL
             </button>
@@ -199,13 +207,13 @@ export default function AdminPage() {
                   <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => editStory(s)}
-                      style={{ background: 'none', border: '1px solid var(--ceefax-cyan)', color: 'var(--ceefax-cyan)', fontFamily: 'ModeSeven', fontSize: '0.65rem', cursor: 'pointer', padding: '2px 8px' }}
+                      style={{ background: 'none', border: '1px solid var(--ceefax-cyan)', color: 'var(--ceefax-cyan)', fontFamily: 'var(--ceefax-font)', fontSize: '0.65rem', cursor: 'pointer', padding: '2px 8px' }}
                     >
                       EDIT
                     </button>
                     <button
                       onClick={() => deleteStory(s.id, s.page_number)}
-                      style={{ background: 'none', border: '1px solid var(--ceefax-red)', color: 'var(--ceefax-red)', fontFamily: 'ModeSeven', fontSize: '0.65rem', cursor: 'pointer', padding: '2px 8px' }}
+                      style={{ background: 'none', border: '1px solid var(--ceefax-red)', color: 'var(--ceefax-red)', fontFamily: 'var(--ceefax-font)', fontSize: '0.65rem', cursor: 'pointer', padding: '2px 8px' }}
                     >
                       DEL
                     </button>
