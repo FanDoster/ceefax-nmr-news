@@ -38,10 +38,10 @@
         '<div class="ceefax-text">' +
           '<div class="ceefax-hl-yellow">PAGE NOT FOUND</div>' +
           '<div class="ceefax-body">That Ceefax page does not exist.</div>' +
-          '<a class="ceefax-flash cyan" href="/">INDEX P100</a>' +
+          '<a class="ceefax-flash cyan" href="/">HEADLINES P100</a>' +
         '</div>'
       CX.renderFastext([
-        { color: 'red',  label: 'INDEX', href: '/' },
+        { color: 'red',  label: 'HEADLINES', href: '/' },
         { color: 'cyan', label: 'ADMIN', href: '/admin.html' },
       ])
     }
@@ -64,7 +64,7 @@
       var title = String(story.title || '').toUpperCase()
       document.title = 'CEEFAX — P' + story.page_number + ' ' + title
       CX.setSection(story.category)
-      CX.setStatus('LATEST NMR NEWS')
+      CX.setStatus('LATEST GOOD NEWS')
 
       var date = new Date(story.created_at)
         .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -93,7 +93,7 @@
       var prevPn = pages.length ? pages[(idx - 1 + pages.length) % pages.length] : story.page_number
       var nextPn = pages.length ? pages[(idx + 1) % pages.length] : story.page_number
       CX.renderFastext([
-        { color: 'red',    label: 'INDEX', href: '/' },
+        { color: 'red',    label: 'HEADLINES', href: '/' },
         { color: 'green',  label: 'PREV',  href: '/story.html?p=' + prevPn },
         { color: 'yellow', label: 'NEXT',  href: '/story.html?p=' + nextPn },
         { color: 'cyan',   label: 'ADMIN', href: '/admin.html' },

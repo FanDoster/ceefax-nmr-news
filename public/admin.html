@@ -82,7 +82,7 @@
             '<div class="form-row"><label>Password</label><input type="password" id="password" required></div>' +
             '<button type="submit" class="btn-ceefax" id="authBtn">SIGN IN</button>' +
           '</form>' +
-          '<div style="margin-top:24px"><a class="ceefax-flash cyan" href="/">INDEX P100</a></div>' +
+          '<div style="margin-top:24px"><a class="ceefax-flash cyan" href="/">HEADLINES P100</a></div>' +
         '</div>'
 
       document.getElementById('authForm').onsubmit = async function (e) {
@@ -118,9 +118,9 @@
             '<div class="ceefax-hl-cyan" style="font-size:18px;margin-bottom:8px">PUBLISHED STORIES</div>' +
             '<div id="storyList"></div>' +
           '</div>' +
-          '<div style="margin-top:20px"><a class="ceefax-flash cyan" href="/">INDEX P100</a></div>' +
+          '<div style="margin-top:20px"><a class="ceefax-flash cyan" href="/">HEADLINES P100</a></div>' +
         '</div>' +
-        '<div class="ceefax-footer"><a href="/">INDEX P100</a><span class="hint">ADMIN — P199</span></div>'
+        '<div class="ceefax-footer"><a href="/">HEADLINES P100</a><span class="hint">ADMIN — P199</span></div>'
 
       document.getElementById('logout').onclick = function () { db.auth.signOut() }
       document.getElementById('cancelEdit').onclick = function () { resetForm() }

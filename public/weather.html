@@ -223,14 +223,28 @@
         '<div class="wx-map"><div class="wx-map-wrap">' + mapSVG() + labels + '</div></div>'
     }
 
-    function showDay(d) { day = Math.max(0, Math.min(2, d)); render() }
+    // Changing day loads like a real teletext page: hold the acquisition scan
+    // + LOADING for a beat, then draw the new day (data is already fetched).
+    var loadTimer = null, loadStop = null
+    function showDay(d) {
+      day = Math.max(0, Math.min(2, d))
+      if (loadTimer) { clearTimeout(loadTimer); if (loadStop) loadStop() }
+      document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading">LOADING...</div>'
+      loadStop = CX.scanPage('401')
+      loadTimer = setTimeout(function () {
+        if (loadStop) loadStop()
+        loadStop = null; loadTimer = null
+        render()
+      }, 800)
+    }
 
     function wxFastext() {
       var host = document.getElementById('fastext')
       host.innerHTML =
-        '<span class="fx red" id="wx-prev"><span class="lbl">- YESTERDAY</span></span>' +
-        '<span class="fx green" id="wx-next"><span class="lbl">+ NEXT DAY</span></span>' +
-        '<a class="fx cyan" href="/"><span class="lbl">INDEX</span></a>'
+        '<span class="fx red" id="wx-prev"><span class="lbl">- PREV</span></span>' +
+        '<span class="fx green" id="wx-next"><span class="lbl">+ NEXT</span></span>' +
+        '<a class="fx yellow" href="/cities.html"><span class="lbl">CITIES</span></a>' +
+        '<a class="fx cyan" href="/"><span class="lbl">HEADLINES</span></a>'
       document.getElementById('wx-prev').onclick = function () { showDay(day - 1) }
       document.getElementById('wx-next').onclick = function () { showDay(day + 1) }
     }
@@ -250,7 +264,7 @@
 
       if (!data) {
         document.getElementById('wx-banner').textContent = 'Weather off air'
-        document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading" style="animation:none">NO DATA — PRESS INDEX</div>'
+        document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading" style="animation:none">NO DATA — PRESS HEADLINES</div>'
         wxFastext()
         return
       }
