@@ -125,6 +125,16 @@ html.crt-boot body::after {
   55%  { opacity: 0.55; transform: scaleY(1); }    /* snaps open to a soft bloom */
   100% { opacity: 0; transform: scaleY(1); }       /* then fades to reveal the page */
 }
+/* On power-on, the picture fades up slowly behind the flash rather than just
+   being uncovered — the tube warming to full brightness. */
+html.crt-boot .ceefax-page {
+  animation: crt-fade-in 1.6s ease-out both;
+}
+@keyframes crt-fade-in {
+  0%   { opacity: 0; }
+  25%  { opacity: 0; }   /* held dark under the initial line + bloom */
+  100% { opacity: 1; }
+}
 
 /* CRT hum bar — a faint bright band drifting slowly down the screen, like the
    rolling interference on an old set. Above the UI too, so it sweeps the whole screen. */
@@ -151,6 +161,7 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   body::after { display: none; }
   body::before { animation: none; }
+  html.crt-boot .ceefax-page { animation: none; }
 }
 
 /* Header stays put at the top while the content scrolls under it.
