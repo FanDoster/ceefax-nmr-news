@@ -45,19 +45,20 @@ html, body {
   text-shadow: 0 0 1px currentColor;
 }
 
-/* CRT scanline overlay — subtle horizontal lines across the whole page.
+/* CRT scanline overlay — visible horizontal lines across the whole page.
    Sits above content but ignores clicks. */
 .ceefax-page::after {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
   background: repeating-linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0)   0px,
-    rgba(0, 0, 0, 0)   2px,
-    rgba(0, 0, 0, 0.28) 3px
+    rgba(0, 0, 0, 0)   1px,
+    rgba(0, 0, 0, 0.25) 2px,
+    rgba(0, 0, 0, 0.25) 3px
   );
   mix-blend-mode: multiply;
 }
