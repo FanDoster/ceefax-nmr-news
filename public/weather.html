@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NMR NEWS — P400 WEATHER</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .wx-title { color: var(--C); font-size: var(--font-size); line-height: var(--cell-h); padding: 10px 14px 0; }
+    .wx-sub { color: var(--G); font-size: 14px; padding: 2px 14px 8px; }
+    /* Two columns of UK cities, filled top-to-bottom like the old weather page */
+    .wx-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(8, auto);
+      grid-auto-flow: column;
+      gap: 3px 26px;
+      padding: 4px 14px 12px;
+    }
+    .wx-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: var(--font-size);
+      line-height: var(--cell-h);
+    }
+    .wx-city { color: var(--C); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .wx-temp { color: var(--Y); width: 4ch; text-align: right; flex-shrink: 0; }
+    .wx-cond { width: 8ch; flex-shrink: 0; text-transform: uppercase; }
+    .wx-cond.sun   { color: var(--Y); }
+    .wx-cond.cloud { color: var(--W); }
+    .wx-cond.rain  { color: var(--C); }
+    .wx-cond.snow  { color: var(--W); }
+    .wx-cond.fog   { color: var(--W); }
+    .wx-cond.storm { color: var(--M); }
+    .wx-msg { color: var(--Y); padding: 24px 14px; font-size: var(--font-size); }
+  </style>
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+    <div id="content"><div class="ceefax-loading">LOADING...</div></div>
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <!-- No Supabase needed — weather comes from Open-Meteo (free, no key). -->
+  <script src="/common.js"></script>
+  <script>
+    CX.renderHeader('400', 'WEATHER', 'LATEST UK WEATHER')
+    var stopScan = CX.scanPage('400')
+
+    // A spread of UK cities, like the old Ceefax weather list.
+    var CITIES = [
+      { name: 'LONDON',     lat: 51.51, lon: -0.13 },
+      { name: 'BIRMINGHAM', lat: 52.48, lon: -1.90 },
+      { name: 'MANCHESTER', lat: 53.48, lon: -2.24 },
+      { name: 'LEEDS',      lat: 53.80, lon: -1.55 },
+      { name: 'LIVERPOOL',  lat: 53.41, lon: -2.99 },
+      { name: 'NEWCASTLE',  lat: 54.98, lon: -1.61 },
+      { name: 'SHEFFIELD',  lat: 53.38, lon: -1.47 },
+      { name: 'BRISTOL',    lat: 51.45, lon: -2.59 },
+      { name: 'NOTTINGHAM', lat: 52.95, lon: -1.15 },
+      { name: 'NORWICH',    lat: 52.63, lon:  1.30 },
+      { name: 'CARDIFF',    lat: 51.48, lon: -3.18 },
+      { name: 'PLYMOUTH',   lat: 50.38, lon: -4.14 },
+      { name: 'EDINBURGH',  lat: 55.95, lon: -3.19 },
+      { name: 'GLASGOW',    lat: 55.86, lon: -4.25 },
+      { name: 'ABERDEEN',   lat: 57.15, lon: -2.09 },
+      { name: 'BELFAST',    lat: 54.60, lon: -5.93 },
+    ]
+
+    // WMO weather code -> Ceefax-style condition word + colour class.
+    function condition(code) {
+      if (code === 0) return { text: 'CLEAR', cls: 'sun' }
+      if (code <= 2)  return { text: 'SUNNY', cls: 'sun' }
+      if (code === 3) return { text: 'CLOUDY', cls: 'cloud' }
+      if (code === 45 || code === 48) return { text: 'FOG', cls: 'fog' }
+      if (code >= 51 && code <= 57) return { text: 'DRIZZLE', cls: 'rain' }
+      if (code >= 61 && code <= 67) return { text: 'RAIN', cls: 'rain' }
+      if (code >= 71 && code <= 77) return { text: 'SNOW', cls: 'snow' }
+      if (code >= 80 && code <= 82) return { text: 'SHOWERS', cls: 'rain' }
+      if (code >= 85 && code <= 86) return { text: 'SNOW', cls: 'snow' }
+      if (code >= 95) return { text: 'THUNDER', cls: 'storm' }
+      return { text: 'CLOUDY', cls: 'cloud' }
+    }
+
+    function wxFastext() {
+      CX.renderFastext([
+        { color: 'red',    label: 'INDEX',     href: '/' },
+        { color: 'green',  label: 'HEADLINES', href: '/story.html?p=101' },
+        { color: 'yellow', label: 'REFRESH',   href: '/weather.html' },
+        { color: 'cyan',   label: 'ADMIN',     href: '/admin.html' },
+      ])
+    }
+
+    ;(async function () {
+      var content = document.getElementById('content')
+      var lats = CITIES.map(function (c) { return c.lat }).join(',')
+      var lons = CITIES.map(function (c) { return c.lon }).join(',')
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lats +
+        '&longitude=' + lons + '&current=temperature_2m,weather_code&timezone=Europe%2FLondon'
+
+      var data = null
+      try {
+        // Hold the page-acquisition scan for at least 1s, like a real page load.
+        var results = await Promise.all([
+          fetch(url).then(function (r) { return r.json() }),
+          CX.delay(1000),
+        ])
+        data = results[0]
+      } catch (e) {
+        data = null
+      }
+      stopScan()
+
+      if (!data) {
+        CX.setStatus('WEATHER OFF AIR')
+        content.innerHTML = '<div class="wx-msg">Weather data is off air.<br>Press REFRESH to try again.</div>'
+        wxFastext()
+        return
+      }
+
+      var arr = Array.isArray(data) ? data : [data]
+      var rows = CITIES.map(function (c, i) {
+        var cur = arr[i] && arr[i].current
+        if (!cur) return ''
+        var temp = Math.round(cur.temperature_2m)
+        var cond = condition(cur.weather_code)
+        return '<div class="wx-row">' +
+          '<span class="wx-city">' + CX.escapeHTML(c.name) + '</span>' +
+          '<span class="wx-temp">' + temp + 'C</span>' +
+          '<span class="wx-cond ' + cond.cls + '">' + cond.text + '</span>' +
+          '</div>'
+      }).join('')
+
+      var now = new Date()
+      var hh = String(now.getHours()).padStart(2, '0')
+      var mm = String(now.getMinutes()).padStart(2, '0')
+
+      content.innerHTML =
+        '<div class="wx-title">UK WEATHER — CURRENT CONDITIONS</div>' +
+        '<div class="wx-sub">UPDATED ' + hh + ':' + mm + '  —  TEMPERATURES IN &deg;C</div>' +
+        '<div class="wx-grid">' + rows + '</div>'
+
+      wxFastext()
+    })()
+  </script>
+</body>
+</html>
