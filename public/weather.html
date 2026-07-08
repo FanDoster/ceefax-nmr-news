@@ -245,7 +245,7 @@
 
       var data = null
       try {
-        var res = await Promise.all([fetch(url).then(function (r) { return r.json() }), CX.delay(1000)])
+        var res = await Promise.all([CX.cachedJSON(url, 10 * 60 * 1000), CX.delay(1000)])
         data = res[0]
       } catch (e) { data = null }
       stopScan()

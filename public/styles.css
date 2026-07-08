@@ -40,9 +40,28 @@ html, body {
   background: var(--K);
   color: var(--W);
   position: relative;
-  padding-bottom: 34px;
+  padding-bottom: 58px;   /* clears the ticker + FASTEXT bars at the bottom */
   /* very faint bloom, like bright teletext on a CRT */
   text-shadow: 0 0 1px currentColor;
+  /* the slightly bulged CRT glass — rounded corners + a dark inset edge */
+  border-radius: 10px;
+}
+
+/* CRT vignette — darkens the corners like light falling off a curved tube.
+   A fixed overlay so it tracks the viewport, above content but click-through. */
+.ceefax-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 51;
+  /* soft darkening towards the edges + a tighter corner falloff */
+  background:
+    radial-gradient(120% 120% at 50% 50%,
+      rgba(0, 0, 0, 0) 62%,
+      rgba(0, 0, 0, 0.35) 100%);
+  /* the inset shadow reads as the curved glass lip around the screen */
+  box-shadow: inset 0 0 90px 12px rgba(0, 0, 0, 0.55);
 }
 
 /* CRT scanline overlay — visible horizontal lines across the whole page.
@@ -299,6 +318,54 @@ html, body {
 .ceefax-fastext .fx.cyan   { color: var(--C); }
 .ceefax-fastext .fx .lbl   { color: var(--W); }
 .ceefax-fastext .fx:hover .lbl { color: currentColor; }
+
+/* Newsflash ticker — scrolling headline strip sitting just above FASTEXT */
+.ceefax-ticker {
+  position: fixed;
+  bottom: 28px;             /* directly on top of the 28px FASTEXT bar */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 640px;
+  max-width: 100vw;
+  height: 24px;
+  display: flex;
+  align-items: stretch;
+  background: var(--K);
+  border-top: 2px solid rgba(255, 255, 0, 0.3);
+  overflow: hidden;
+  z-index: 99;
+}
+.ceefax-ticker .tick-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--Y);
+  color: var(--K);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.ceefax-ticker .tick-track {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.ceefax-ticker .tick-run {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--W);
+  font-size: 15px;
+  will-change: transform;
+  animation: ticker 60s linear infinite;
+}
+/* two copies of the text sit end-to-end; -50% scrolls exactly one copy */
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ceefax-ticker:hover .tick-run { animation-play-state: paused; }
 
 /* Plain footer — used by the admin page (P199) */
 .ceefax-footer {

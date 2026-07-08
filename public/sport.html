@@ -79,12 +79,12 @@
 
       var data = null, season = '', complete = false
       try {
-        var res = await Promise.all([fetch(BASE).then(function (r) { return r.json() }), CX.delay(1000)])
+        var res = await Promise.all([CX.cachedJSON(BASE, 5 * 60 * 1000), CX.delay(1000)])
         var cur = extract(res[0])
         var played = cur.entries.reduce(function (s, e) { return s + stat(e, 'gamesPlayed') }, 0)
         if (played === 0 && cur.year) {
           // season not started — show last completed season's final table
-          var prev = await fetch(BASE + '?season=' + (cur.year - 1)).then(function (r) { return r.json() })
+          var prev = await CX.cachedJSON(BASE + '?season=' + (cur.year - 1), 60 * 60 * 1000)
           cur = extract(prev)
           complete = true
         }

@@ -27,6 +27,31 @@
   // "LOADING..." screen for a minimum time, like an old teletext page loading.
   function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms) }) }
 
+  // Fetch JSON with a short-lived localStorage cache so re-opening or
+  // refreshing a page (weather / sport / cities) doesn't re-hit the API every
+  // time. Falls back to a live fetch if the cache is stale, missing, or
+  // unavailable; serves a stale copy if the network fails.
+  function cachedJSON(url, ttlMs, opts) {
+    var key = 'cx-cache:' + url
+    var now = Date.now()
+    var cached = null
+    try {
+      var raw = localStorage.getItem(key)
+      if (raw) {
+        cached = JSON.parse(raw)
+        if (now - cached.t < ttlMs) return Promise.resolve(cached.d)
+      }
+    } catch (e) { /* storage disabled or corrupt — just fetch live */ }
+
+    return fetch(url, opts).then(function (r) { return r.json() }).then(function (data) {
+      try { localStorage.setItem(key, JSON.stringify({ t: now, d: data })) } catch (e) {}
+      return data
+    }).catch(function (err) {
+      if (cached) return cached.d   // network died — serve the stale copy
+      throw err
+    })
+  }
+
   // "NMR" as chunky teletext block letters (SAA5050 sixel-mosaic look) — the
   // masthead banner mark. Each glyph is a 5x5 bitmap; a '1' lights that block.
   function nmrLogoSVG() {
@@ -273,6 +298,55 @@
   }
   document.addEventListener('keydown', onKeyNav)
 
+  // === Responsive fallback — the design is a fixed 640px "screen"; on narrower
+  // viewports scale the whole page down to fit rather than overflowing. `zoom`
+  // scales layout (unlike transform) so scrolling and the fixed bars still
+  // behave. ===
+  function fitViewport() {
+    if (!document.body) return
+    // Measure the root element's width — it's the true viewport width and,
+    // unlike window.innerWidth, is unaffected by the zoom we set on <body>
+    // (so it never feeds back on itself).
+    var w = document.documentElement.clientWidth
+    document.body.style.zoom = w < 640 ? (w / 640) : ''
+  }
+  window.addEventListener('resize', fitViewport)
+
+  // === Newsflash ticker — a slim scrolling strip of the latest headlines above
+  // the FASTEXT bar, for that rolling-broadcast feel. Fetched over the Supabase
+  // REST API so it works on every page (no CDN client needed). Pages without a
+  // FASTEXT bar (e.g. admin) are skipped. ===
+  function initTicker() {
+    if (!db && !SUPABASE_URL) return
+    if (!document.getElementById('fastext')) return
+
+    var bar = document.createElement('div')
+    bar.className = 'ceefax-ticker'
+    bar.innerHTML = '<span class="tick-label">NEWS</span>' +
+      '<span class="tick-track"><span class="tick-run"></span></span>'
+    document.body.appendChild(bar)
+
+    var url = SUPABASE_URL + '/rest/v1/ceefax_stories' +
+      '?select=page_number,title&order=page_number.desc&limit=12'
+    cachedJSON(url, 5 * 60 * 1000, {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+    }).then(function (rows) {
+      if (!rows || !rows.length) { bar.remove(); return }
+      var seq = rows.map(function (r) {
+        return 'P' + r.page_number + '  ' + String(r.title).toUpperCase()
+      }).join('   •••   ') + '   •••   '
+      // Two copies so the -50% scroll loops seamlessly.
+      bar.querySelector('.tick-run').textContent = seq + seq
+    }).catch(function () { bar.remove() })
+  }
+
+  function startChrome() { fitViewport(); initTicker() }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startChrome)
+  } else {
+    startChrome()
+  }
+
   // Generic Ceefax-style story graphics (blocky SVGs in /images/graphics).
   var GRAPHICS = [
     { name: 'Games controller', path: '/images/graphics/controller.svg' },
@@ -294,6 +368,7 @@
     GRAPHICS: GRAPHICS,
     escapeHTML: escapeHTML,
     delay: delay,
+    cachedJSON: cachedJSON,
     nmrLogoSVG: nmrLogoSVG,
     sproutLogoSVG: sproutLogoSVG,
     mascotHTML: mascotHTML,
