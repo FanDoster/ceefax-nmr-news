@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import CeefaxHeader from '../components/CeefaxHeader'
 
@@ -10,70 +10,77 @@ export default function HomePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session))
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    supabase.auth.onAuthStateChange((_e, s) => setSession(s))
 
-    supabase
-      .from('ceefax_stories')
-      .select('page_number, title, category, created_at')
-      .order('page_number', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) setStories(data)
-        setLoading(false)
-      })
-
-    return () => subscription.unsubscribe()
+    supabase.from('ceefax_stories')
+      .select('page_number, title, category')
+      .order('page_number')
+      .then(({ data }) => { if (data) setStories(data); setLoading(false) })
   }, [])
 
-  const cats = [...new Set(stories.map(s => s.category))]
+  if (loading) return (
+    <div className="ceefax-page">
+      <CeefaxHeader page="100" sub="NMR NEWS  —  GOOD NEWS IN GAMES" />
+      <div className="ceefax-loading">LOADING...</div>
+    </div>
+  )
 
   return (
-    <div className="ceefax-app">
-      <CeefaxHeader page="100" sub="INDEX" />
+    <div className="ceefax-page">
+      <CeefaxHeader page="100" sub="NMR NEWS  —  GOOD NEWS IN GAMES" />
 
       <div className="ceefax-content">
-        <div className="flash-cyan" style={{ marginBottom: 16, fontSize: '0.9rem' }}>
-          NMR NEWS — POSITIVE STORIES FROM THE GAMES INDUSTRY
+        <div className="index-graphic">
+          <pre style={{ color:'var(--C)', fontSize:11, lineHeight:1.2, margin:0 }}>
+{`  WW  WW  WW  WWW
+  W W W  W W  W
+  W W W  WWW  WW
+  W W W  W W  W
+  WW  WW  W W  WWW
+
+   CCC EEE EEE FFF
+  C    E   E   F
+  C    EE  EE  FF
+  C    E   E   F
+   CCC EEE EEE F`}
+          </pre>
         </div>
 
-        {loading ? (
-          <div className="loading">LOADING...</div>
-        ) : (
-          <ul className="headline-list">
-            {stories.map((s, i) => (
-              <li
-                key={s.page_number}
-                className="headline-item"
-                onClick={() => navigate(`/story/${s.page_number}`)}
-              >
-                <span className="headline-num">P{s.page_number}</span>
-                <span className="headline-category">{s.category}</span>
-                <span className="headline-title">{s.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="index-stories">
+          <div className="ceefax-hl-cyan">NMR NEWS INDEX</div>
+          <div className="ceefax-hl-yellow">GOOD NEWS IN GAMES</div>
 
-        {!loading && stories.length === 0 && (
-          <p style={{ color: 'var(--ceefax-yellow)', padding: 24 }}>
-            No stories yet. Go to <Link to="/admin">P199 ADMIN</Link> to add the first one.
-          </p>
-        )}
+          {stories.map(s => (
+            <div key={s.page_number} className="index-story-row" onClick={() => navigate(`/story/${s.page_number}`)}>
+              <span className="index-pn">P{s.page_number}</span>
+              <span className="index-cat">{s.category}</span>
+              <span className="index-title">{s.title}</span>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 16 }}>
+            {session ? (
+              <span className="ceefax-flash cyan" style={{cursor:'pointer'}} onClick={() => navigate('/admin')}>
+                ADMIN P199
+              </span>
+            ) : (
+              <span className="ceefax-flash cyan" style={{cursor:'pointer'}} onClick={() => navigate('/admin')}>
+                ADMIN P199
+              </span>
+            )}
+            {session && (
+              <span className="ceefax-flash red" style={{cursor:'pointer', marginLeft:8}}
+                onClick={() => supabase.auth.signOut()}>LOGOUT</span>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="ceefax-nav">
-        <span className="nav-hint">NMR NEWS INDEX</span>
-        <span>
-          {session ? (
-            <>
-              <Link to="/admin">Admin P199</Link>
-              {' | '}
-              <a href="#logout" onClick={(e) => { e.preventDefault(); supabase.auth.signOut() }}>Logout</a>
-            </>
-          ) : (
-            <Link to="/admin">Admin P199</Link>
-          )}
-        </span>
+      <div className="ceefax-footer">
+        <Link to="/">INDEX P100</Link>
+        <span className="hint">NMR NEWS INDEX</span>
+        <span className="next">{stories.length} STORIES</span>
       </div>
     </div>
   )
