@@ -167,8 +167,6 @@ html, body {
 .nmr-logo {
   display: block;
 }
-/* Big NMR logo used as the left-column graphic — same width as the mascot image was */
-.ceefax-graphic .nmr-logo { width: 192px; height: auto; margin-bottom: 6px; }
 
 /* Text column (right) */
 .ceefax-text {

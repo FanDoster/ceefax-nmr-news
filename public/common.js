@@ -50,10 +50,10 @@
     return '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="NMR">' + rects + '</svg>'
   }
 
-  // The left-column graphic: the big NMR block logo with its GOOD NEWS caption.
+  // The left-column graphic: the smiling teletext TV mascot with its GOOD NEWS caption.
   function mascotHTML() {
     return '<div class="ceefax-graphic">' +
-      nmrLogoSVG() +
+      '<img src="/images/ceefax-indie.png" alt="NMR News mascot" class="mascot-img">' +
       '<div class="mascot-caption">GOOD NEWS</div>' +
       '</div>'
   }
