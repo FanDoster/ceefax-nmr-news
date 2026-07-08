@@ -27,8 +27,8 @@
   // "LOADING..." screen for a minimum time, like an old teletext page loading.
   function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms) }) }
 
-  // "NMR" as chunky teletext block letters (SAA5050 sixel-mosaic look).
-  // Each glyph is a 5x5 bitmap; a '1' lights that block.
+  // "NMR" as chunky teletext block letters (SAA5050 sixel-mosaic look) — the
+  // masthead banner mark. Each glyph is a 5x5 bitmap; a '1' lights that block.
   function nmrLogoSVG() {
     var glyphs = [
       { color: 'var(--C)', rows: ['10001', '11001', '10101', '10011', '10001'] }, // N — cyan
@@ -50,10 +50,69 @@
     return '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="NMR">' + rects + '</svg>'
   }
 
+  // The No More Robots brand logo in teletext mosaic: their green sprout
+  // (rasterised from the real logo) with the initials N / M / R stacked beside
+  // it in the header letter colours (cyan / yellow / green). Used as the big
+  // graphic on the index page.
+  function sproutLogoSVG() {
+    // 12x22 mosaic of the sprout ('#' = a lit green block).
+    var SPROUT = [
+      '...###......',
+      '....###..###',
+      '###..##.####',
+      '#####..#####',
+      '######.####.',
+      '.######.....',
+      '..#####.....',
+      '...####.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+      '......#.....',
+    ]
+    var glyphs = {
+      N: ['10001', '11001', '10101', '10011', '10001'],
+      M: ['10001', '11011', '10101', '10001', '10001'],
+      R: ['11110', '10001', '11110', '10010', '10001'],
+    }
+    var G = 'var(--G)', C = 'var(--C)', Y = 'var(--Y)'
+    function block(x, y, fill) {
+      return '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + fill + '"/>'
+    }
+    var rects = ''
+    for (var r = 0; r < SPROUT.length; r++) {
+      for (var c = 0; c < SPROUT[r].length; c++) {
+        if (SPROUT[r][c] === '#') rects += block(c, r, G)
+      }
+    }
+    // N / M / R stacked to the right of the sprout, in the header letter colours.
+    var XOFF = 13
+    var letters = [['N', C, 5], ['M', Y, 11], ['R', G, 17]]
+    letters.forEach(function (l) {
+      glyphs[l[0]].forEach(function (row, y) {
+        row.split('').forEach(function (cell, x) {
+          if (cell === '1') rects += block(XOFF + x, l[2] + y, l[1])
+        })
+      })
+    })
+    return '<svg class="sprout-logo" viewBox="0 0 18 22" shape-rendering="crispEdges" ' +
+      'role="img" aria-label="NMR — No More Robots">' + rects + '</svg>'
+  }
+
   // The left-column graphic: the smiling teletext TV mascot with its GOOD NEWS caption.
   function mascotHTML() {
     return '<div class="ceefax-graphic">' +
-      '<img src="/images/ceefax-indie.png" alt="NMR News mascot" class="mascot-img">' +
+      sproutLogoSVG() +
       '<div class="mascot-caption">GOOD NEWS</div>' +
       '</div>'
   }
@@ -157,6 +216,7 @@
     escapeHTML: escapeHTML,
     delay: delay,
     nmrLogoSVG: nmrLogoSVG,
+    sproutLogoSVG: sproutLogoSVG,
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,
     setStatus: setStatus,

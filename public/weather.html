@@ -7,16 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .wx-banner {
-      background: var(--B);
-      color: var(--W);
-      text-align: center;
-      font-size: var(--font-size);
-      line-height: var(--cell-h);
-      padding: 3px 2px;
-    }
     .wx-body { position: relative; padding: 4px 8px; min-height: 470px; }
-    .wx-count { position: absolute; top: 4px; right: 14px; color: var(--W); font-size: var(--font-size); }
     .wx-cond { position: absolute; top: 130px; left: 14px; color: var(--C); font-size: 26px; }
     /* Temperature colour key */
     .wx-key { position: absolute; top: 190px; left: 14px; font-size: 15px; line-height: 18px; }
@@ -49,13 +40,7 @@
 </head>
 <body>
   <div class="ceefax-page">
-    <div class="ceefax-mast">
-      <span class="m-page" id="cx-pagenum">P401</span>
-      <span class="m-service">CEEFAX NMR <span id="cx-svcpage">401</span></span>
-      <span class="m-date" id="cx-date"></span>
-      <span class="ceefax-clock" id="cx-clock"></span>
-    </div>
-    <div class="wx-banner" id="wx-banner">Weather</div>
+    <div id="header"></div>
     <div class="wx-body" id="wx-body"><div class="ceefax-loading">LOADING...</div></div>
     <div class="wx-source">Data from Open-Meteo</div>
     <div class="ceefax-fastext" id="fastext"></div>
@@ -64,18 +49,9 @@
   <!-- No Supabase — weather is from Open-Meteo (free, no key). -->
   <script src="/common.js"></script>
   <script>
-    var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     var DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    function p2(n) { return String(n).padStart(2, '0') }
 
-    function tick() {
-      var t = new Date()
-      var d = document.getElementById('cx-date'), c = document.getElementById('cx-clock')
-      if (d) d.textContent = DAYS[t.getDay()] + ' ' + p2(t.getDate()) + ' ' + MONTHS[t.getMonth()]
-      if (c) c.textContent = p2(t.getHours()) + ':' + p2(t.getMinutes()) + '/' + p2(t.getSeconds())
-    }
-    tick(); setInterval(tick, 1000)
+    CX.renderHeader('401', 'WEATHER', 'THREE-DAY FORECAST')
     var stopScan = CX.scanPage('401')
 
     // ---- The UK + Ireland as a teletext mosaic ----
@@ -205,7 +181,7 @@
     var forecast = {}, dayNames = [], day = 0
 
     function render() {
-      document.getElementById('wx-banner').textContent = 'Weather for ' + (dayNames[day] || '')
+      CX.setStatus('WEATHER FOR ' + (dayNames[day] || '') + '  ' + (day + 1) + '/3')
       var codes = []
       var labels = SPOTS.map(function (s) {
         var f = forecast[s.name]
@@ -217,7 +193,6 @@
       }).join('')
 
       document.getElementById('wx-body').innerHTML =
-        '<div class="wx-count">' + (day + 1) + '/3</div>' +
         '<div class="wx-cond">' + (codes.length ? condWord(modal(codes)) : '') + '</div>' +
         KEY_HTML +
         '<div class="wx-map"><div class="wx-map-wrap">' + mapSVG() + labels + '</div></div>'
@@ -263,7 +238,7 @@
       stopScan()
 
       if (!data) {
-        document.getElementById('wx-banner').textContent = 'Weather off air'
+        CX.setStatus('WEATHER OFF AIR')
         document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading" style="animation:none">NO DATA — PRESS HEADLINES</div>'
         wxFastext()
         return
