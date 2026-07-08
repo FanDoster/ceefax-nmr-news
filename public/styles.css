@@ -249,23 +249,28 @@ body::before {
 }
 .ceefax-subhead .sh-page { color: var(--Y); flex-shrink: 0; }
 
-/* === CONTENT AREA === */
+/* === CONTENT AREA ===
+   Left padding reserves the fixed graphic column (14px margin + 192px graphic)
+   so the story text sits in the right column. */
 .ceefax-content {
-  padding: 14px 14px 0 14px;
+  padding: 14px 14px 0 206px;
   display: flex;
   gap: 0;
   align-items: flex-start;
 }
 
-/* Mosaic graphic column (left) — stays fixed in place while the story scrolls.
-   top matches the graphic's resting offset (112px header + 14px content pad) so
-   it sticks immediately with zero pre-stick travel. */
+/* Mosaic graphic column (left) — truly fixed so it never scrolls, even at the
+   bottom of a long page. Anchored to the page's left column with the same
+   centred math the FASTEXT bar uses (left:50% minus half the 640px page, plus
+   the 14px margin), so it stays aligned at any window width or zoom. */
 .ceefax-graphic {
-  width: 192px;
-  flex-shrink: 0;
-  image-rendering: pixelated;
-  position: sticky;
+  position: fixed;
   top: 126px;
+  left: 50%;
+  margin-left: -306px;   /* -(640/2) + 14 */
+  width: 192px;
+  image-rendering: pixelated;
+  z-index: 40;
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
