@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=ModeSeven&display=swap');
+@font-face {
+  font-family: 'Bedstead';
+  src: url('/fonts/Bedstead-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 
 :root {
   --ceefax-bg: #000000;
@@ -10,6 +16,8 @@
   --ceefax-blue: #0000ff;
   --ceefax-white: #ffffff;
   --ceefax-black: #000000;
+  --ceefax-font: 'Bedstead', monospace;
+  --ceefax-glow: 0 0 2px currentColor;
 }
 
 * {
@@ -22,12 +30,31 @@ html, body, #root {
   height: 100%;
   background: var(--ceefax-bg);
   color: var(--ceefax-white);
-  font-family: 'ModeSeven', monospace;
+  font-family: var(--ceefax-font);
   font-size: 20px;
   line-height: 1.35;
   image-rendering: pixelated;
   -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
   overflow-x: hidden;
+  text-shadow: 0 0 1px rgba(255,255,255,0.15);
+}
+
+/* CRT scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.08) 0px,
+    rgba(0,0,0,0.08) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.6;
 }
 
 a {
@@ -169,6 +196,7 @@ a:hover {
   padding: 4px 12px;
   display: inline-block;
   font-weight: bold;
+  box-shadow: 0 0 8px rgba(0,255,255,0.3);
 }
 
 .flash-yellow {
@@ -177,6 +205,7 @@ a:hover {
   padding: 4px 12px;
   display: inline-block;
   font-weight: bold;
+  box-shadow: 0 0 8px rgba(255,255,0,0.3);
 }
 
 .flash-magenta {
@@ -185,6 +214,7 @@ a:hover {
   padding: 4px 12px;
   display: inline-block;
   font-weight: bold;
+  box-shadow: 0 0 8px rgba(255,0,255,0.3);
 }
 
 .flash-green {
@@ -193,6 +223,7 @@ a:hover {
   padding: 4px 12px;
   display: inline-block;
   font-weight: bold;
+  box-shadow: 0 0 8px rgba(0,255,0,0.3);
 }
 
 /* Navigation footer */
