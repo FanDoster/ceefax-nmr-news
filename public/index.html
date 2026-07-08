@@ -27,6 +27,7 @@
   <script>
     CX.renderHeader('100', 'NMR NEWS  —  GOOD NEWS IN GAMES')
     document.getElementById('content').insertAdjacentHTML('afterbegin', CX.mascotHTML())
+    var stopScan = CX.scanPage('100')
 
     ;(async function () {
       var host = document.getElementById('stories')
@@ -35,6 +36,7 @@
         CX.db.from('ceefax_stories').select('page_number, title, category').order('page_number'),
         CX.delay(1000),
       ])
+      stopScan()
       var res = results[0]
 
       if (res.error || !res.data) {

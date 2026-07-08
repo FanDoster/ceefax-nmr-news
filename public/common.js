@@ -72,7 +72,7 @@
     document.getElementById('header').innerHTML =
       '<div class="ceefax-header">' +
         '<a class="ceefax-brand" href="/" aria-label="NMR News — home">' + nmrLogoSVG() + '</a>' +
-        '<div class="ceefax-pagenum">P' + escapeHTML(page) + '</div>' +
+        '<div class="ceefax-pagenum" id="cx-pagenum">P' + escapeHTML(page) + '</div>' +
         '<div class="ceefax-clock" id="cx-clock"></div>' +
       '</div>' +
       '<div class="ceefax-status" id="cx-status">' + escapeHTML(sub) + '</div>'
@@ -85,6 +85,23 @@
   function setStatus(sub) {
     var el = document.getElementById('cx-status')
     if (el) el.textContent = sub
+  }
+
+  // Teletext page acquisition: rapidly increment the header page number, as if
+  // scanning the broadcast rotation for the requested page, then lock onto
+  // `finalPage`. Returns a stop() to call once the page has loaded.
+  function scanPage(finalPage) {
+    var el = document.getElementById('cx-pagenum')
+    if (!el) return function () {}
+    var n = 100
+    var timer = setInterval(function () {
+      n = n >= 899 ? 100 : n + 1
+      el.textContent = 'P' + n
+    }, 25)
+    return function stop() {
+      clearInterval(timer)
+      el.textContent = 'P' + finalPage
+    }
   }
 
   // Render the FASTEXT bar into #fastext from an array of
@@ -106,6 +123,7 @@
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,
     setStatus: setStatus,
+    scanPage: scanPage,
     renderFastext: renderFastext,
   }
 })()

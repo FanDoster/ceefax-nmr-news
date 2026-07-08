@@ -29,6 +29,7 @@
 
     var pnum = parseInt(new URLSearchParams(location.search).get('p'), 10)
     CX.renderHeader(String(pnum || '1'), 'LOADING...')
+    var stopScan = CX.scanPage(pnum || 1)
 
     function showNotFound() {
       CX.setStatus('PAGE NOT FOUND')
@@ -46,13 +47,14 @@
 
     ;(async function () {
       // Hold LOADING... for at least 1s, even if the fetch returns sooner.
-      if (!pnum) { await CX.delay(1000); showNotFound(); return }
+      if (!pnum) { await CX.delay(1000); stopScan(); showNotFound(); return }
 
       var results = await Promise.all([
         CX.db.from('ceefax_stories').select('*').eq('page_number', pnum).single(),
         CX.db.from('ceefax_stories').select('page_number').order('page_number'),
         CX.delay(1000),
       ])
+      stopScan()
       var story = results[0].data
       var pages = (results[1].data || []).map(function (p) { return p.page_number })
 
