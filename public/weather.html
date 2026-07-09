@@ -45,6 +45,21 @@
       line-height: 1.1;
       padding: 0 2px;
     }
+    /* OFF AIR "no data" state — centred message + a teletext REFRESH button */
+    .wx-offair { text-align: center; padding-top: 24px; }
+    .wx-refresh {
+      display: inline-block;
+      margin-top: 18px;
+      font: inherit;
+      font-size: var(--font-size);
+      line-height: var(--cell-h);
+      background: var(--G);
+      color: var(--K);
+      border: 0;
+      padding: 5px 18px;
+      cursor: pointer;
+    }
+    .wx-refresh:hover, .wx-refresh:focus { background: var(--Y); outline: none; }
     .wx-source {
       background: var(--B);
       color: var(--W);
@@ -255,6 +270,18 @@
       document.getElementById('wx-next').onclick = function () { showDay(day + 1); startCycle() }
     }
 
+    // Off-air "no data" screen with a button to retry the forecast fetch.
+    function showOffAir() {
+      CX.setStatus('WEATHER OFF AIR')
+      document.getElementById('wx-body').innerHTML =
+        '<div class="wx-offair">' +
+          '<div class="ceefax-loading" style="animation:none">NO DATA</div>' +
+          '<button class="wx-refresh" type="button">&#8635; REFRESH</button>' +
+        '</div>'
+      document.querySelector('.wx-refresh').onclick = function () { location.reload() }
+      wxFastext()
+    }
+
     ;(async function () {
       var lats = SPOTS.map(function (s) { return s.lat }).join(',')
       var lons = SPOTS.map(function (s) { return s.lon }).join(',')
@@ -269,17 +296,23 @@
       stopScan()
 
       if (!data) {
-        CX.setStatus('WEATHER OFF AIR')
-        document.getElementById('wx-body').innerHTML = '<div class="ceefax-loading" style="animation:none">NO DATA — PRESS HEADLINES</div>'
-        wxFastext()
+        showOffAir()
         return
       }
 
       var arr = Array.isArray(data) ? data : [data]
       SPOTS.forEach(function (s, i) {
         var dd = arr[i] && arr[i].daily
-        if (dd) forecast[s.name] = { max: dd.temperature_2m_max.map(Math.round), code: dd.weather_code }
+        if (dd && dd.temperature_2m_max) forecast[s.name] = { max: dd.temperature_2m_max.map(Math.round), code: dd.weather_code }
       })
+
+      // No usable forecast (e.g. an API error slipped through) — show OFF AIR
+      // rather than an empty map with no temperatures.
+      if (!Object.keys(forecast).length) {
+        showOffAir()
+        return
+      }
+
       var times = (arr[0] && arr[0].daily && arr[0].daily.time) || []
       dayNames = times.map(function (t) { return DAYS_FULL[new Date(t + 'T12:00:00').getDay()] })
 

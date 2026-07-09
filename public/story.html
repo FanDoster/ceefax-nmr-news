@@ -73,6 +73,7 @@
       document.title = 'CEEFAX — P' + story.page_number + ' ' + title
       CX.setSection(story.category)
       CX.setStatus('LATEST GOOD NEWS')
+      CX.setDate(story.created_at)   // pin the masthead date to the publication date
 
       var date = new Date(story.created_at)
         .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })

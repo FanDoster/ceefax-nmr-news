@@ -43,7 +43,14 @@
       }
     } catch (e) { /* storage disabled or corrupt — just fetch live */ }
 
-    return fetch(url, opts).then(function (r) { return r.json() }).then(function (data) {
+    return fetch(url, opts).then(function (r) {
+      // A rate-limit / server error still returns JSON (e.g. Open-Meteo's
+      // {error:true,reason}). Reject it so we never cache a bad response and
+      // then serve it for the whole TTL — fall through to the stale/live path.
+      if (!r.ok) throw new Error('HTTP ' + r.status)
+      return r.json()
+    }).then(function (data) {
+      if (data && data.error) throw new Error(data.reason || 'API error')
       try { localStorage.setItem(key, JSON.stringify({ t: now, d: data })) } catch (e) {}
       return data
     }).catch(function (err) {
@@ -142,12 +149,31 @@
       '</div>'
   }
 
+  // When set, the masthead date shows this fixed publication date instead of
+  // today's date (the clock keeps ticking live, as on a real teletext set).
+  var fixedDate = null
+
+  function fmtDate(t) {
+    return DAYS[t.getDay()] + ' ' + pad(t.getDate()) + ' ' + MONTHS[t.getMonth()]
+  }
+
   function tickClock() {
     var t = new Date()
     var d = document.getElementById('cx-date')
     var c = document.getElementById('cx-clock')
-    if (d) d.textContent = DAYS[t.getDay()] + ' ' + pad(t.getDate()) + ' ' + MONTHS[t.getMonth()]
+    if (d) d.textContent = fixedDate != null ? fixedDate : fmtDate(t)
     if (c) c.textContent = pad(t.getHours()) + ':' + pad(t.getMinutes()) + '/' + pad(t.getSeconds())
+  }
+
+  // Pin the masthead date to a story's publication date. Pass a Date (or a
+  // value new Date() accepts); pass null to restore the live date.
+  function setDate(when) {
+    if (when == null) { fixedDate = null }
+    else {
+      var t = when instanceof Date ? when : new Date(when)
+      fixedDate = isNaN(t.getTime()) ? null : fmtDate(t)
+    }
+    tickClock()
   }
 
   // Render the authentic Ceefax masthead into #header:
@@ -359,6 +385,7 @@
     sproutLogoSVG: sproutLogoSVG,
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,
+    setDate: setDate,
     setStatus: setStatus,
     setSection: setSection,
     scanPage: scanPage,

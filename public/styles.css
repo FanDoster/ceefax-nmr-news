@@ -181,7 +181,7 @@ body::before {
   gap: 16px;
   height: 26px;
   padding: 3px 8px 0;
-  font-size: var(--font-size);
+  font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
 }
