@@ -45,21 +45,11 @@
       line-height: 1.1;
       padding: 0 2px;
     }
-    /* OFF AIR "no data" state — centred message + a teletext REFRESH button */
-    .wx-offair { text-align: center; padding-top: 24px; }
-    .wx-refresh {
-      display: inline-block;
-      margin-top: 18px;
-      font: inherit;
-      font-size: var(--font-size);
-      line-height: var(--cell-h);
-      background: var(--G);
-      color: var(--K);
-      border: 0;
-      padding: 5px 18px;
-      cursor: pointer;
-    }
-    .wx-refresh:hover, .wx-refresh:focus { background: var(--Y); outline: none; }
+    /* OFF AIR "no data" state — a teletext fault card. The refresh action lives
+       on the RED FASTEXT key below, exactly as a real teletext set would. */
+    .wx-offair { padding: 30px 10px 0; }
+    .wx-offair .ceefax-hl-cyan { margin-bottom: 14px; }
+    .wx-offair .ceefax-body { max-width: 32ch; }
     .wx-source {
       background: var(--B);
       color: var(--W);
@@ -270,16 +260,30 @@
       document.getElementById('wx-next').onclick = function () { showDay(day + 1); startCycle() }
     }
 
-    // Off-air "no data" screen with a button to retry the forecast fetch.
+    // Off-air "no data" screen, styled as a teletext fault card. The refresh
+    // action is the RED FASTEXT key (also reachable by pressing R), like a set.
     function showOffAir() {
       CX.setStatus('WEATHER OFF AIR')
       document.getElementById('wx-body').innerHTML =
         '<div class="wx-offair">' +
-          '<div class="ceefax-loading" style="animation:none">NO DATA</div>' +
-          '<button class="wx-refresh" type="button">&#8635; REFRESH</button>' +
+          '<div class="ceefax-hl-cyan">OFF AIR</div>' +
+          '<div class="ceefax-body">The latest forecast could not be tuned in just now.</div>' +
+          '<div class="ceefax-body">It will return shortly, or press the RED key to refresh.</div>' +
+          '<div style="margin-top:16px"><span class="ceefax-flash red">REFRESH</span></div>' +
         '</div>'
-      document.querySelector('.wx-refresh').onclick = function () { location.reload() }
-      wxFastext()
+      offAirFastext()
+    }
+
+    // FASTEXT bar for the off-air screen: RED refreshes (retunes), the rest
+    // are escape hatches. PREV/NEXT are omitted — there's no forecast to page.
+    function offAirFastext() {
+      var host = document.getElementById('fastext')
+      host.innerHTML =
+        '<span class="fx red" id="wx-refresh"><span class="lbl">REFRESH</span></span>' +
+        '<a class="fx green" href="/sport.html"><span class="lbl">SPORT</span></a>' +
+        '<a class="fx yellow" href="/cities.html"><span class="lbl">CITIES</span></a>' +
+        '<a class="fx cyan" href="/"><span class="lbl">HEADLINES</span></a>'
+      document.getElementById('wx-refresh').onclick = function () { location.reload() }
     }
 
     ;(async function () {
