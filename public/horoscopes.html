@@ -327,10 +327,10 @@
         document.title = 'CEEFAX NMR NEWS — P560 YOUR STARS'
         document.getElementById('content').innerHTML = coverHTML()
         CX.renderFastext([
-          { color: 'red',    label: 'ARIES',     href: '/horoscopes.html?p=' + FIRST_PAGE },
+          { color: 'red',    label: 'HEADLINES', href: '/' },
           { color: 'green',  label: 'WEATHER',   href: '/weather.html' },
           { color: 'yellow', label: 'SPORT',     href: '/sport.html' },
-          { color: 'cyan',   label: 'HEADLINES', href: '/' },
+          { color: 'cyan',   label: 'CITIES',    href: '/cities.html' },
         ])
       } else {
         document.title = 'CEEFAX NMR NEWS — P' + pnum + ' ' + SIGNS[signIdx].name
