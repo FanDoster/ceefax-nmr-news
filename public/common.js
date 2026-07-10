@@ -261,6 +261,8 @@
     if (n === 300) return '/sport.html'
     if (n === 401) return '/weather.html'
     if (n === 402) return '/cities.html'
+    if (n === 560) return '/horoscopes.html'
+    if (n >= 561 && n <= 572) return '/horoscopes.html?p=' + n
     if (n >= 101 && n <= 198) return '/story.html?p=' + n
     return '/404.html'
   }
