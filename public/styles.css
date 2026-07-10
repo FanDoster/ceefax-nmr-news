@@ -178,12 +178,6 @@ body::before {
    common.js sets these classes on <html> from saved preferences. */
 html.fx-no-scanlines .ceefax-page::after { display: none; }   /* scanlines off */
 html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
-/* colour fringing off: drop the RGB aperture grille and the text fringes,
-   keeping the hard Ceefax drop-shadow and glow */
-html.fx-no-aberration::after { display: none; }
-html.fx-no-aberration .ceefax-banner-title { text-shadow: 3px 9px 0 var(--K); }
-html.fx-no-aberration .ceefax-hl-cyan,
-html.fx-no-aberration .ceefax-hl-yellow { text-shadow: 0 0 1px currentColor; }
 
 /* The discrete gear — a small SET tab tucked above the FASTEXT bar. */
 .cx-gear {

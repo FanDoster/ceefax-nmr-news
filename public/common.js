@@ -352,9 +352,8 @@
   // tab above the FASTEXT bar opens a mini teletext service page of switches;
   // choices persist in localStorage and apply as fx-no-* classes on <html>. ===
   var FX = [
-    { key: 'scanlines', label: 'SCANLINES',       cls: 'fx-no-scanlines' },
-    { key: 'rollbar',   label: 'ROLLING BAR',     cls: 'fx-no-rollbar' },
-    { key: 'fringe',    label: 'COLOUR FRINGING', cls: 'fx-no-aberration' },
+    { key: 'scanlines', label: 'SCANLINES',   cls: 'fx-no-scanlines' },
+    { key: 'rollbar',   label: 'ROLLING BAR', cls: 'fx-no-rollbar' },
   ]
   function fxLoad() {
     try { return JSON.parse(localStorage.getItem('cx-fx')) || {} } catch (e) { return {} }
