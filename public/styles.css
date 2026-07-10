@@ -89,8 +89,18 @@ html, body {
       rgba(0, 0, 0, 0)   1px,
       rgba(0, 0, 0, 0.22) 2px,
       rgba(0, 0, 0, 0.22) 3px
-    ),
-    /* aperture grille — 1px red / green / blue phosphor columns */
+    );
+  mix-blend-mode: multiply;
+}
+/* Aperture grille — 1px red / green / blue phosphor columns. Its own overlay
+   (not part of the scanline mask) so the COLOUR FRINGING toggle controls it. */
+html::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+  background-image:
     repeating-linear-gradient(
       to right,
       rgba(255, 0, 0, 0.10) 0px,
@@ -166,9 +176,11 @@ body::before {
 
 /* === DISPLAY SETTINGS — user toggles for the CRT dressing ===
    common.js sets these classes on <html> from saved preferences. */
-html.fx-no-scanlines .ceefax-page::after { display: none; }   /* shadow mask off */
+html.fx-no-scanlines .ceefax-page::after { display: none; }   /* scanlines off */
 html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
-/* colour fringing off: keep the hard Ceefax drop-shadow and glow, drop the fringes */
+/* colour fringing off: drop the RGB aperture grille and the text fringes,
+   keeping the hard Ceefax drop-shadow and glow */
+html.fx-no-aberration::after { display: none; }
 html.fx-no-aberration .ceefax-banner-title { text-shadow: 3px 9px 0 var(--K); }
 html.fx-no-aberration .ceefax-hl-cyan,
 html.fx-no-aberration .ceefax-hl-yellow { text-shadow: 0 0 1px currentColor; }
@@ -280,11 +292,11 @@ html.fx-no-aberration .ceefax-hl-yellow { text-shadow: 0 0 1px currentColor; }
   overflow: hidden;
   white-space: nowrap;
   text-transform: uppercase;
-  /* hard black drop-shadow (BBC Ceefax headers) + subtle CRT colour fringing */
+  /* hard black drop-shadow (BBC Ceefax headers) + CRT colour fringing */
   text-shadow:
     3px 9px 0 var(--K),
-    0.7px 0 0 rgba(255, 0, 60, 0.4),
-    -0.7px 0 0 rgba(0, 140, 255, 0.4);
+    1.3px 0 0 rgba(255, 0, 60, 0.55),
+    -1.3px 0 0 rgba(0, 140, 255, 0.55);
 }
 
 /* === HEADER: description row (row 3) ===
@@ -379,10 +391,10 @@ html.fx-no-aberration .ceefax-hl-yellow { text-shadow: 0 0 1px currentColor; }
   font-size: var(--hl-size);
   line-height: 1.05;
   margin-bottom: 4px;
-  /* subtle CRT colour fringing on the big headline text */
+  /* CRT colour fringing on the big headline text */
   text-shadow:
-    0.6px 0 0 rgba(255, 0, 60, 0.35),
-    -0.6px 0 0 rgba(0, 140, 255, 0.35),
+    1.2px 0 0 rgba(255, 0, 60, 0.5),
+    -1.2px 0 0 rgba(0, 140, 255, 0.5),
     0 0 1px currentColor;
 }
 .ceefax-hl-cyan   { color: var(--C); }
