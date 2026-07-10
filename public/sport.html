@@ -73,7 +73,8 @@
       font-size: 22px; text-align: center; padding: 8px; margin: 10px 14px;
     }
     /* World Cup 2026 hero graphic + captions */
-    .wc-wrap { padding: 8px 10px 2px; }
+    /* z-index lifts the hero above the scanline overlay so it stays crisp */
+    .wc-wrap { padding: 8px 10px 2px; position: relative; z-index: 155; }
     .wc-hero { display: block; width: 100%; height: auto; image-rendering: pixelated; }
     .wc-cap { color: var(--Y); text-align: center; font-size: var(--font-size); line-height: var(--cell-h); padding: 4px 8px 0; }
     .wc-sub { color: var(--W); text-align: center; font-size: 14px; padding: 1px 8px 4px; }

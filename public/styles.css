@@ -232,7 +232,9 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 #header, .wx-header {
   position: sticky;
   top: 0;
-  z-index: 60;
+  /* above the scanline overlay (150) and the raised graphics (155) so its own
+     logo image is crisp and scrolling graphics tuck underneath it */
+  z-index: 158;
   background: var(--K);
 }
 
@@ -333,7 +335,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   margin-left: -306px;   /* -(640/2) + 14 */
   width: 192px;
   image-rendering: pixelated;
-  z-index: 40;
+  z-index: 155;   /* above the scanline/CRT overlays so the graphic stays crisp */
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
