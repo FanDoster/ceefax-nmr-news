@@ -164,6 +164,63 @@ body::before {
   html.crt-boot .ceefax-page { animation: none; }
 }
 
+/* === DISPLAY SETTINGS — user toggles for the CRT dressing ===
+   common.js sets these classes on <html> from saved preferences. */
+html.fx-no-scanlines .ceefax-page::after { display: none; }   /* shadow mask off */
+html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
+/* colour fringing off: keep the hard Ceefax drop-shadow and glow, drop the fringes */
+html.fx-no-aberration .ceefax-banner-title { text-shadow: 3px 9px 0 var(--K); }
+html.fx-no-aberration .ceefax-hl-cyan,
+html.fx-no-aberration .ceefax-hl-yellow { text-shadow: 0 0 1px currentColor; }
+
+/* The discrete gear — a small SET tab tucked above the FASTEXT bar. */
+.cx-gear {
+  position: fixed;
+  right: 8px;
+  bottom: 34px;
+  z-index: 160;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(0, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.cx-gear:hover, .cx-gear:focus { color: var(--C); border-color: var(--C); outline: none; }
+
+/* The settings panel — a teletext service page in miniature. */
+.cx-settings {
+  position: fixed;
+  right: 8px;
+  bottom: 62px;
+  z-index: 165;
+  width: 252px;
+  background: var(--K);
+  border: 2px solid var(--C);
+  padding: 10px 12px 8px;
+  font-size: 15px;
+  line-height: 22px;
+}
+.cx-settings-title { color: var(--Y); margin-bottom: 6px; }
+.cx-fx-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--W);
+  cursor: pointer;
+  text-align: left;
+}
+.cx-fx-row:hover .fx-lbl { color: var(--C); }
+.cx-fx-row .fx-val.on  { color: var(--G); }
+.cx-fx-row .fx-val.off { color: var(--R); }
+.cx-settings-hint { color: rgba(255, 255, 255, 0.45); font-size: 11px; margin-top: 8px; }
+
 /* Header stays put at the top while the content scrolls under it.
    (The FASTEXT bar is likewise fixed at the bottom.) */
 #header, .wx-header {

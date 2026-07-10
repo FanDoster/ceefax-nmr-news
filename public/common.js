@@ -348,6 +348,80 @@
     fitViewport()
   }
 
+  // === Display settings — user toggles for the CRT dressing. A discrete SET
+  // tab above the FASTEXT bar opens a mini teletext service page of switches;
+  // choices persist in localStorage and apply as fx-no-* classes on <html>. ===
+  var FX = [
+    { key: 'scanlines', label: 'SCANLINES',       cls: 'fx-no-scanlines' },
+    { key: 'rollbar',   label: 'ROLLING BAR',     cls: 'fx-no-rollbar' },
+    { key: 'fringe',    label: 'COLOUR FRINGING', cls: 'fx-no-aberration' },
+  ]
+  function fxLoad() {
+    try { return JSON.parse(localStorage.getItem('cx-fx')) || {} } catch (e) { return {} }
+  }
+  var fxState = fxLoad()   // key -> false means switched off; anything else = on
+  function fxOn(key) { return fxState[key] !== false }
+  function fxApply() {
+    FX.forEach(function (f) {
+      document.documentElement.classList.toggle(f.cls, !fxOn(f.key))
+    })
+  }
+  fxApply()
+
+  function buildSettings() {
+    var gear = document.createElement('button')
+    gear.className = 'cx-gear'
+    gear.type = 'button'
+    gear.textContent = 'SET'
+    gear.setAttribute('aria-label', 'Display settings')
+
+    var panel = document.createElement('div')
+    panel.className = 'cx-settings'
+    panel.hidden = true
+    panel.innerHTML = '<div class="cx-settings-title">DISPLAY SETTINGS</div>' +
+      FX.map(function (f) {
+        return '<button class="cx-fx-row" type="button" data-key="' + f.key + '">' +
+          '<span class="fx-lbl">' + f.label + '</span>' +
+          '<span class="fx-val"></span></button>'
+      }).join('') +
+      '<div class="cx-settings-hint">SAVED ON THIS SET &middot; ESC TO CLOSE</div>'
+
+    function paint() {
+      FX.forEach(function (f) {
+        var v = panel.querySelector('[data-key="' + f.key + '"] .fx-val')
+        var on = fxOn(f.key)
+        v.textContent = on ? 'ON' : 'OFF'
+        v.className = 'fx-val ' + (on ? 'on' : 'off')
+      })
+    }
+    paint()
+
+    panel.addEventListener('click', function (e) {
+      var row = e.target.closest('.cx-fx-row')
+      if (!row) return
+      var key = row.getAttribute('data-key')
+      fxState[key] = !fxOn(key)
+      try { localStorage.setItem('cx-fx', JSON.stringify(fxState)) } catch (e2) {}
+      fxApply()
+      paint()
+    })
+    gear.addEventListener('click', function () { panel.hidden = !panel.hidden })
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') panel.hidden = true
+    })
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && e.target !== gear) panel.hidden = true
+    })
+
+    document.body.appendChild(gear)
+    document.body.appendChild(panel)
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildSettings)
+  } else {
+    buildSettings()
+  }
+
   // === CRT power-on gating — only play the switch-on "tune-in" on a genuine
   // load/refresh of the site or a fresh arrival from elsewhere, NOT when
   // clicking a link within the site (those are same-origin navigations). ===
