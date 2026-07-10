@@ -41,10 +41,37 @@
     .sp-gd   { width: 4ch; text-align: right; color: var(--W); flex-shrink: 0; }
     .sp-pts  { width: 4ch; text-align: right; color: var(--Y); flex-shrink: 0; }
     .sp-head .sp-team { color: var(--W); }
-    /* zone colours: Champions League places / relegation */
+    /* zone colours: European places / relegation */
     .sp-row.cl  .sp-team { color: var(--G); }
     .sp-row.rel .sp-team { color: var(--R); }
     .sp-msg { color: var(--Y); padding: 24px 14px; font-size: var(--font-size); }
+    /* zone key legend */
+    .sp-key { display: flex; gap: 18px; padding: 8px 14px 4px; font-size: 14px; color: var(--W); }
+    .sp-key .sw { display: inline-block; width: 12px; height: 12px; margin-right: 6px; }
+    /* subpage counter (table carousel) */
+    .sp-count { color: var(--G); font-size: 14px; padding: 0 14px 4px; }
+    /* sport index menu */
+    .sp-menu { padding: 6px 14px; }
+    .sp-menu a {
+      display: flex; gap: 12px; align-items: baseline;
+      font-size: var(--font-size); line-height: 24px;
+      color: var(--W); text-decoration: none;
+    }
+    .sp-menu a .pn { color: var(--Y); width: 4ch; flex-shrink: 0; }
+    .sp-menu a:hover, .sp-menu a:hover .pn { color: var(--C); }
+    /* match rows (results / fixtures / world cup) */
+    .sp-day { color: var(--Y); font-size: 15px; padding: 10px 14px 2px; }
+    .mx { display: flex; align-items: baseline; gap: 8px; padding: 0 14px; font-size: 18px; line-height: 22px; }
+    .mx .h { flex: 1; text-align: right; color: var(--C); overflow: hidden; white-space: nowrap; }
+    .mx .s { width: 7ch; text-align: center; color: var(--W); flex-shrink: 0; }
+    .mx .a { flex: 1; color: var(--C); overflow: hidden; white-space: nowrap; }
+    .mx .st { width: 9ch; text-align: right; font-size: 13px; color: var(--G); flex-shrink: 0; }
+    .mx.live .s, .mx.live .st { color: var(--Y); animation: blink 1s steps(1) infinite; }
+    /* world champions banner (post-tournament) */
+    .sp-champ {
+      background: var(--Y); color: var(--K);
+      font-size: 22px; text-align: center; padding: 8px; margin: 10px 14px;
+    }
     /* World Cup 2026 hero graphic + captions */
     .wc-wrap { padding: 8px 10px 2px; }
     .wc-hero { display: block; width: 100%; height: auto; image-rendering: pixelated; }
@@ -64,10 +91,30 @@
   <!-- No Supabase — football data is from ESPN's public API (no key). -->
   <script src="/common.js"></script>
   <script>
-    CX.renderHeader('300', 'SPORT', 'WORLD CUP 2026 & LEAGUE')
-    var stopScan = CX.scanPage('300')
+    // ============================================================
+    // SPORT is a multi-page section, tuned by number like real Ceefax:
+    //   300 index | 301 world cup | 302 results | 303 fixtures
+    //   304 league table | 310 formula 1
+    // ============================================================
+    var params = new URLSearchParams(location.search)
+    var pnum = parseInt(params.get('p'), 10) || 300
 
-    var BASE = 'https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings'
+    var LEAGUES = [
+      { code: 'eng.1',   name: 'ENGLISH PREMIER LEAGUE', top: 4, rel: 3, topLbl: 'CHAMPIONS LGE' },
+      { code: 'eng.2',   name: 'EFL CHAMPIONSHIP',       top: 2, rel: 3, topLbl: 'PROMOTION' },
+      { code: 'sco.1',   name: 'SCOTTISH PREMIERSHIP',   top: 3, rel: 1, topLbl: 'EUROPE' },
+      { code: 'eng.w.1', name: 'WOMENS SUPER LEAGUE',    top: 3, rel: 1, topLbl: 'CHAMPIONS LGE' },
+    ]
+    var lgCode = params.get('lg') || 'eng.1'
+    var LG = LEAGUES.filter(function (l) { return l.code === lgCode })[0] || LEAGUES[0]
+    function nextLg() { return LEAGUES[(LEAGUES.indexOf(LG) + 1) % LEAGUES.length].code }
+    function spURL(p, lg) { return '/sport.html?p=' + p + (lg ? '&lg=' + lg : '') }
+
+    var SITE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/'
+    var V2 = 'https://site.api.espn.com/apis/v2/sports/'
+    var LIVE_TTL = 45 * 1000          // scoreboards touching today: near-live
+    var PAST_TTL = 10 * 60 * 1000     // finished results: relaxed
+    var TABLE_TTL = 5 * 60 * 1000
 
     // === World Cup 2026 hero mosaic (generated) ===
     var WC_ART = [
@@ -132,6 +179,73 @@
         '</div>'
     }
 
+    // ---- shared helpers ----
+    function pad2(n) { return String(n).padStart(2, '0') }
+    function ymd(d) { return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) }
+    function addDays(d, n) { var t = new Date(d); t.setDate(t.getDate() + n); return t }
+    function range(from, to) { return ymd(from) + '-' + ymd(to) }
+    var DAYS3 = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+    var MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    function dayLabel(d) { return DAYS3[d.getDay()] + ' ' + d.getDate() + ' ' + MON3[d.getMonth()] }
+
+    // Normalise a scoreboard event into what the match row needs.
+    function parseEvent(e) {
+      var c = e.competitions[0]
+      var home = null, away = null
+      c.competitors.forEach(function (x) { if (x.homeAway === 'home') home = x; else away = x })
+      var st = e.status.type
+      var d = new Date(e.date)
+      return {
+        date: d, dayKey: d.toDateString(),
+        home: (home.team.shortDisplayName || home.team.abbreviation).toUpperCase(),
+        away: (away.team.shortDisplayName || away.team.abbreviation).toUpperCase(),
+        hs: home.score, as: away.score,
+        state: st.state,                                  // pre | in | post
+        detail: (st.shortDetail || '').replace('Scheduled',
+          pad2(d.getHours()) + ':' + pad2(d.getMinutes())),
+        stage: ((e.season && e.season.slug) || '').replace(/-/g, ' ').toUpperCase(),
+        winner: home.winner ? home : (away.winner ? away : null),
+      }
+    }
+
+    function matchRow(m) {
+      var mid = m.state === 'pre'
+        ? pad2(m.date.getHours()) + ':' + pad2(m.date.getMinutes())
+        : (m.hs != null ? m.hs : '') + '-' + (m.as != null ? m.as : '')
+      return '<div class="mx' + (m.state === 'in' ? ' live' : '') + '">' +
+        '<span class="h">' + CX.escapeHTML(m.home) + '</span>' +
+        '<span class="s">' + CX.escapeHTML(mid) + '</span>' +
+        '<span class="a">' + CX.escapeHTML(m.away) + '</span>' +
+        '<span class="st">' + CX.escapeHTML(m.state === 'pre' ? '' : m.detail) + '</span>' +
+        '</div>'
+    }
+
+    // Render events grouped under yellow day headers (with stage for the cup).
+    function matchList(events, withStage) {
+      var out = '', lastKey = ''
+      events.forEach(function (m) {
+        if (m.dayKey !== lastKey) {
+          lastKey = m.dayKey
+          out += '<div class="sp-day">' + dayLabel(m.date) +
+            (withStage && m.stage ? ' &mdash; ' + CX.escapeHTML(m.stage) : '') + '</div>'
+        }
+        out += matchRow(m)
+      })
+      return out
+    }
+
+    function scoreboard(league, dates, ttl) {
+      return CX.cachedJSON(SITE + league + '/scoreboard?dates=' + dates, ttl)
+        .then(function (d) { return (d.events || []).map(parseEvent) })
+    }
+
+    function offAir(msg) {
+      CX.setStatus('SPORT OFF AIR')
+      document.getElementById('content').innerHTML =
+        '<div class="sp-msg">' + msg + '<br>Press SPORT to go back.</div>'
+    }
+
+    // ---- league table (P304, also embedded logic for zones) ----
     function stat(entry, name) {
       var s = entry.stats.filter(function (x) { return x.name === name })[0]
       return s ? s.value : 0
@@ -153,45 +267,9 @@
       rows.sort(function (a, b) { return (a.rank || 99) - (b.rank || 99) })
       return rows
     }
-
-    function spFastext() {
-      CX.renderFastext([
-        { color: 'red',    label: 'HEADLINES', href: '/' },
-        { color: 'green',  label: 'WEATHER',   href: '/weather.html' },
-        { color: 'yellow', label: 'STARS',     href: '/horoscopes.html' },
-        { color: 'cyan',   label: 'REFRESH',   href: '/sport.html' },
-      ])
-    }
-
-    ;(async function () {
-      var content = document.getElementById('content')
-
-      var data = null, season = '', complete = false
-      try {
-        var res = await Promise.all([CX.cachedJSON(BASE, 5 * 60 * 1000), CX.delay(1000)])
-        var cur = extract(res[0])
-        var played = cur.entries.reduce(function (s, e) { return s + stat(e, 'gamesPlayed') }, 0)
-        if (played === 0 && cur.year) {
-          // season not started — show last completed season's final table
-          var prev = await CX.cachedJSON(BASE + '?season=' + (cur.year - 1), 60 * 60 * 1000)
-          cur = extract(prev)
-          complete = true
-        }
-        data = toRows(cur.entries)
-        season = cur.season
-      } catch (e) { data = null }
-      stopScan()
-
-      if (!data || !data.length) {
-        CX.setStatus('SPORT OFF AIR')
-        content.innerHTML = wcHero() + '<div class="sp-msg">Table is off air.<br>Press REFRESH to try again.</div>'
-        spFastext()
-        return
-      }
-
-      var n = data.length
-      var rows = data.map(function (r) {
-        var zone = r.rank <= 4 ? ' cl' : (r.rank > n - 3 ? ' rel' : '')
+    function tableRows(rows, n) {
+      return rows.map(function (r) {
+        var zone = r.rank <= LG.top ? ' cl' : (r.rank > n - LG.rel ? ' rel' : '')
         var gd = (r.gd > 0 ? '+' : '') + r.gd
         return '<div class="sp-row' + zone + '">' +
           '<span class="sp-pos">' + r.rank + '</span>' +
@@ -204,19 +282,214 @@
           '<span class="sp-pts">' + r.pts + '</span>' +
           '</div>'
       }).join('')
+    }
+    var TABLE_HEAD = '<div class="sp-head">' +
+      '<span class="sp-pos"></span><span class="sp-team">TEAM</span>' +
+      '<span class="sp-n">P</span><span class="sp-n">W</span><span class="sp-n">D</span>' +
+      '<span class="sp-n">L</span><span class="sp-gd">GD</span><span class="sp-pts">PTS</span></div>'
+    function zoneKey() {
+      return '<div class="sp-key">' +
+        '<span><span class="sw" style="background:var(--G)"></span>' + LG.topLbl + '</span>' +
+        '<span><span class="sw" style="background:var(--R)"></span>RELEGATION</span></div>'
+    }
 
-      content.innerHTML =
-        wcHero() +
-        '<div class="wc-divider">ALSO: PREMIER LEAGUE TABLE</div>' +
-        '<div class="sp-title">ENGLISH PREMIER LEAGUE</div>' +
-        '<div class="sp-sub">' + CX.escapeHTML(season) + (complete ? ' — FINAL TABLE' : '') + '</div>' +
-        '<div class="sp-head">' +
-          '<span class="sp-pos"></span><span class="sp-team">TEAM</span>' +
-          '<span class="sp-n">P</span><span class="sp-n">W</span><span class="sp-n">D</span>' +
-          '<span class="sp-n">L</span><span class="sp-gd">GD</span><span class="sp-pts">PTS</span>' +
-        '</div>' + rows
+    // ---- timers (carousel + live refresh), paused when the tab is hidden ----
+    var timers = []
+    function every(ms, fn) { timers.push(setInterval(function () { if (!document.hidden) fn() }, ms)) }
 
-      spFastext()
+    // ============ VIEWS ============
+    var content
+
+    // P300 — sport index: hero, today at the cup, page menu
+    function viewIndex() {
+      document.title = 'CEEFAX NMR NEWS \u2014 P300 SPORT'
+      return scoreboard('fifa.world', range(new Date(), new Date()), LIVE_TTL).then(function (today) {
+        var strip = today.length
+          ? matchList(today, true)
+          : '<div class="sp-sub" style="padding-top:6px">No matches today.</div>'
+        content.innerHTML =
+          wcHero() +
+          '<div class="sp-title">TODAY AT THE WORLD CUP</div>' + strip +
+          '<div class="sp-title" style="padding-top:14px">SPORT PAGES</div>' +
+          '<div class="sp-menu">' +
+            '<a href="' + spURL(301) + '"><span class="pn">301</span>WORLD CUP RESULTS + FIXTURES</a>' +
+            '<a href="' + spURL(302) + '"><span class="pn">302</span>FOOTBALL RESULTS</a>' +
+            '<a href="' + spURL(303) + '"><span class="pn">303</span>FOOTBALL FIXTURES</a>' +
+            '<a href="' + spURL(304) + '"><span class="pn">304</span>LEAGUE TABLES</a>' +
+            '<a href="' + spURL(310) + '"><span class="pn">310</span>FORMULA 1</a>' +
+          '</div>'
+        CX.renderFastext([
+          { color: 'red',    label: 'WORLD CUP', href: spURL(301) },
+          { color: 'green',  label: 'RESULTS',   href: spURL(302) },
+          { color: 'yellow', label: 'TABLE',     href: spURL(304) },
+          { color: 'cyan',   label: 'HEADLINES', href: '/' },
+        ])
+      })
+    }
+
+    // P301 — the World Cup: recent results + upcoming, champions when over
+    function viewWorldCup() {
+      document.title = 'CEEFAX NMR NEWS \u2014 P301 WORLD CUP'
+      CX.setStatus('WORLD CUP 2026')
+      var now = new Date()
+      return scoreboard('fifa.world', range(addDays(now, -14), addDays(now, 14)), LIVE_TTL)
+        .then(function (evs) {
+          var played = evs.filter(function (m) { return m.state === 'post' })
+          var toCome = evs.filter(function (m) { return m.state !== 'post' })
+          var champs = ''
+          // tournament over: nothing left to play and the final has a winner
+          if (!toCome.length && played.length) {
+            var fin = played[played.length - 1]
+            if (/FINAL$/.test(fin.stage) && !/SEMI|QUARTER/.test(fin.stage)) {
+              var w = fin.winner
+                ? (fin.winner.team.shortDisplayName || fin.winner.team.abbreviation).toUpperCase()
+                : ((fin.hs | 0) > (fin.as | 0) ? fin.home : fin.away)
+              champs = '<div class="sp-champ">WORLD CHAMPIONS: ' + CX.escapeHTML(w) + '</div>'
+            }
+          }
+          content.innerHTML =
+            wcHero() + champs +
+            (toCome.length ? '<div class="sp-title">FIXTURES</div>' + matchList(toCome, true) : '') +
+            (played.length ? '<div class="sp-title" style="padding-top:10px">RESULTS</div>' +
+              matchList(played.slice().reverse(), true) : '') +
+            (!evs.length ? '<div class="sp-msg">No matches in the last fortnight.</div>' : '')
+          CX.renderFastext([
+            { color: 'red',    label: 'SPORT',     href: spURL(300) },
+            { color: 'green',  label: 'RESULTS',   href: spURL(302) },
+            { color: 'yellow', label: 'TABLE',     href: spURL(304) },
+            { color: 'cyan',   label: 'HEADLINES', href: '/' },
+          ])
+        })
+    }
+
+    // P302 / P303 — league results and fixtures with a league cycle key
+    function viewMatches(isResults) {
+      var p = isResults ? 302 : 303
+      document.title = 'CEEFAX NMR NEWS \u2014 P' + p + ' ' + (isResults ? 'RESULTS' : 'FIXTURES')
+      CX.setStatus(LG.name + ' \u2014 ' + (isResults ? 'RESULTS' : 'FIXTURES'))
+      var now = new Date()
+      var dates = isResults ? range(addDays(now, -10), now) : range(now, addDays(now, 14))
+      return scoreboard(LG.code, dates, isResults ? LIVE_TTL : PAST_TTL).then(function (evs) {
+        evs = evs.filter(function (m) { return isResults ? m.state !== 'pre' : m.state !== 'post' })
+        if (isResults) evs.reverse()
+        content.innerHTML =
+          '<div class="sp-title">' + LG.name + ' \u2014 ' + (isResults ? 'RESULTS' : 'FIXTURES') + '</div>' +
+          (evs.length ? matchList(evs, false)
+            : '<div class="sp-msg">Nothing ' + (isResults ? 'played in the last 10 days' : 'scheduled in the next fortnight') + '.<br>Press LEAGUE for another division.</div>')
+        CX.renderFastext([
+          { color: 'red',    label: 'SPORT',   href: spURL(300) },
+          { color: 'green',  label: 'LEAGUE',  href: spURL(p, nextLg()) },
+          { color: 'yellow', label: isResults ? 'FIXTURES' : 'RESULTS', href: spURL(isResults ? 303 : 302, LG.code) },
+          { color: 'cyan',   label: 'TABLE',   href: spURL(304, LG.code) },
+        ])
+      })
+    }
+
+    // P304 — league table, auto-cycling two subpages like a real carousel
+    function viewTable() {
+      document.title = 'CEEFAX NMR NEWS \u2014 P304 TABLE'
+      CX.setStatus(LG.name)
+      var url = V2 + 'soccer/' + LG.code + '/standings'
+      return CX.cachedJSON(url, TABLE_TTL).then(function (res) {
+        var cur = extract(res)
+        var played = cur.entries.reduce(function (s, e) { return s + stat(e, 'gamesPlayed') }, 0)
+        var pre = Promise.resolve({ cur: cur, complete: false })
+        if (played === 0 && cur.year) {
+          pre = CX.cachedJSON(url + '?season=' + (cur.year - 1), 60 * 60 * 1000)
+            .then(function (prev) { return { cur: extract(prev), complete: true } })
+        }
+        return pre
+      }).then(function (r) {
+        var rows = toRows(r.cur.entries), n = rows.length
+        var PER = 12, pages = Math.ceil(n / PER), sub = 0
+        function draw() {
+          var slice = rows.slice(sub * PER, sub * PER + PER)
+          content.innerHTML =
+            '<div class="sp-title">' + LG.name + '</div>' +
+            '<div class="sp-sub">' + CX.escapeHTML(r.cur.season) + (r.complete ? ' \u2014 FINAL TABLE' : '') + '</div>' +
+            (pages > 1 ? '<div class="sp-count">' + (sub + 1) + '/' + pages + '</div>' : '') +
+            TABLE_HEAD + tableRows(slice, n) + zoneKey()
+        }
+        draw()
+        if (pages > 1) every(12 * 1000, function () { sub = (sub + 1) % pages; draw() })
+        CX.renderFastext([
+          { color: 'red',    label: 'SPORT',    href: spURL(300) },
+          { color: 'green',  label: 'LEAGUE',   href: spURL(304, nextLg()) },
+          { color: 'yellow', label: 'RESULTS',  href: spURL(302, LG.code) },
+          { color: 'cyan',   label: 'FIXTURES', href: spURL(303, LG.code) },
+        ])
+      })
+    }
+
+    // P310 — Formula 1: drivers or constructors championship
+    function viewF1() {
+      var wantCons = params.get('view') === 'c'
+      document.title = 'CEEFAX NMR NEWS \u2014 P310 FORMULA 1'
+      CX.setStatus('FORMULA 1 \u2014 ' + (wantCons ? 'CONSTRUCTORS' : 'DRIVERS'))
+      return CX.cachedJSON(V2 + 'racing/f1/standings', 30 * 60 * 1000).then(function (d) {
+        var kids = d.children || []
+        var pick = kids.filter(function (k) {
+          return wantCons ? /constructor/i.test(k.name) : /driver/i.test(k.name)
+        })[0] || kids[0]
+        var entries = ((pick || {}).standings || {}).entries || []
+        var rows = entries.map(function (x) {
+          var stats = {}
+          x.stats.forEach(function (s) { stats[s.name] = s })
+          var who = x.athlete ? x.athlete.displayName : (x.team ? x.team.displayName : '?')
+          return {
+            rank: parseInt((stats.rank || {}).displayValue, 10) || 0,
+            name: who.toUpperCase(),
+            pts: (stats.championshipPts || stats.points || {}).displayValue || '0',
+          }
+        }).sort(function (a, b) { return a.rank - b.rank })
+        content.innerHTML =
+          '<div class="sp-title">FORMULA 1 \u2014 ' + (wantCons ? 'CONSTRUCTORS' : 'DRIVERS') + '</div>' +
+          '<div class="sp-sub">' + ((pick.standings && pick.standings.season) || '') + ' CHAMPIONSHIP</div>' +
+          '<div class="sp-head"><span class="sp-pos"></span><span class="sp-team">' +
+            (wantCons ? 'TEAM' : 'DRIVER') + '</span><span class="sp-pts">PTS</span></div>' +
+          rows.map(function (r) {
+            return '<div class="sp-row">' +
+              '<span class="sp-pos">' + r.rank + '</span>' +
+              '<span class="sp-team">' + CX.escapeHTML(r.name) + '</span>' +
+              '<span class="sp-pts">' + CX.escapeHTML(r.pts) + '</span></div>'
+          }).join('')
+        CX.renderFastext([
+          { color: 'red',    label: 'SPORT', href: spURL(300) },
+          { color: 'green',  label: wantCons ? 'DRIVERS' : 'CONSTRUCTORS', href: '/sport.html?p=310' + (wantCons ? '' : '&view=c') },
+          { color: 'yellow', label: 'WORLD CUP', href: spURL(301) },
+          { color: 'cyan',   label: 'HEADLINES', href: '/' },
+        ])
+      })
+    }
+
+    // ============ BOOT ============
+    var VIEWS = { 300: viewIndex, 301: viewWorldCup, 302: function () { return viewMatches(true) },
+                  303: function () { return viewMatches(false) }, 304: viewTable, 310: viewF1 }
+    var view = VIEWS[pnum] || viewIndex
+    if (!VIEWS[pnum]) pnum = 300
+
+    var DESCS = { 300: 'WORLD CUP & FOOTBALL', 301: 'WORLD CUP 2026', 302: 'FOOTBALL RESULTS',
+                  303: 'FOOTBALL FIXTURES', 304: 'LEAGUE TABLES', 310: 'FORMULA 1' }
+    CX.renderHeader(String(pnum), 'SPORT', DESCS[pnum])
+    var stopScan = CX.scanPage(pnum)
+
+    ;(async function () {
+      content = document.getElementById('content')
+      try {
+        await Promise.all([view(), CX.delay(1000)])
+        stopScan()
+        // near-live refresh for the cup pages (interval registered once)
+        if (pnum === 300 || pnum === 301) every(60 * 1000, function () { view() })
+      } catch (e) {
+        stopScan()
+        offAir('This page is off air.')
+        CX.renderFastext([
+          { color: 'red',    label: 'SPORT',     href: spURL(300) },
+          { color: 'green',  label: 'REFRESH',   href: location.href },
+          { color: 'yellow', label: 'TABLE',     href: spURL(304) },
+          { color: 'cyan',   label: 'HEADLINES', href: '/' },
+        ])
+      }
     })()
   </script>
 </body>

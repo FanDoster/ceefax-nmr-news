@@ -259,6 +259,7 @@
     if (n === 100) return '/'
     if (n === 199) return '/admin.html'
     if (n === 300) return '/sport.html'
+    if (n > 300 && n <= 349) return '/sport.html?p=' + n
     if (n === 401) return '/weather.html'
     if (n === 402) return '/cities.html'
     if (n === 560) return '/horoscopes.html'
