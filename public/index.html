@@ -64,8 +64,9 @@
     }
     .index-hero .ih-tagline .sh-page { position: absolute; right: 8px; color: var(--Y); }
     /* the doubled logo overflows down into the left column, so drop the
-       crystal-ball promo below it */
-    .ceefax-graphic { top: 232px; }
+       crystal-ball promo below it. z-index lifts it above the scanline/CRT
+       overlays so those effects don't fall across the crystal ball. */
+    .ceefax-graphic { top: 232px; z-index: 155; }
 
     /* Horoscopes promo — now the sole graphic in the left column */
     .index-horo {
