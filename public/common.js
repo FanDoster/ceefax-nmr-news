@@ -1,4 +1,4 @@
-/* Ceefax NMR News — shared vanilla JS. No framework, no build step.
+/* Ceefax News — shared vanilla JS. No framework, no build step.
    Loaded as a classic <script> after the Supabase CDN script. */
 (function () {
   'use strict'
@@ -59,13 +59,16 @@
     })
   }
 
-  // "NMR" as chunky teletext block letters (SAA5050 sixel-mosaic look) — the
+  // "CEEFAX" as chunky teletext block letters (SAA5050 sixel-mosaic look) — the
   // masthead banner mark. Each glyph is a 5x5 bitmap; a '1' lights that block.
   function nmrLogoSVG() {
     var glyphs = [
-      { color: 'var(--C)', rows: ['10001', '11001', '10101', '10011', '10001'] }, // N — cyan
-      { color: 'var(--Y)', rows: ['10001', '11011', '10101', '10001', '10001'] }, // M — yellow
-      { color: 'var(--G)', rows: ['11110', '10001', '11110', '10010', '10001'] }, // R — green
+      { color: 'var(--C)', rows: ['01110', '10001', '10000', '10001', '01110'] }, // C — cyan
+      { color: 'var(--Y)', rows: ['11111', '10000', '11110', '10000', '11111'] }, // E — yellow
+      { color: 'var(--G)', rows: ['11111', '10000', '11110', '10000', '11111'] }, // E — green
+      { color: 'var(--M)', rows: ['11111', '10000', '11110', '10000', '10000'] }, // F — magenta
+      { color: 'var(--R)', rows: ['01110', '10001', '11111', '10001', '10001'] }, // A — red
+      { color: 'var(--B)', rows: ['10001', '01010', '00100', '01010', '10001'] }, // X — blue
     ]
     var LW = 5, GAP = 1, rects = ''
     glyphs.forEach(function (g, gi) {
@@ -79,10 +82,10 @@
       })
     })
     var w = glyphs.length * LW + (glyphs.length - 1) * GAP
-    return '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="NMR">' + rects + '</svg>'
+    return '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="Ceefax">' + rects + '</svg>'
   }
 
-  // The No More Robots brand logo in teletext mosaic: their green sprout
+  // The Ceefax brand logo in teletext mosaic: their green sprout
   // (rasterised from the real logo) with the initials N / M / R stacked beside
   // it in the header letter colours (cyan / yellow / green). Used as the big
   // graphic on the index page.
@@ -138,7 +141,7 @@
       })
     })
     return '<svg class="sprout-logo" viewBox="0 0 18 22" shape-rendering="crispEdges" ' +
-      'role="img" aria-label="NMR — No More Robots">' + rects + '</svg>'
+      'role="img" aria-label="Ceefax">' + rects + '</svg>'
   }
 
   // The left-column graphic: the smiling teletext TV mascot with its GOOD NEWS caption.
@@ -177,8 +180,8 @@
   }
 
   // Render the authentic Ceefax masthead into #header:
-  //   row 0 — P{n}  CEEFAX NMR {n}  {date}  {clock in yellow}
-  //   rows 1-2 — NMR block logo + a big yellow section title on a blue banner
+  //   row 0 — P{n}  CEEFAX {n}  {date}  {clock in yellow}
+  //   rows 1-2 — CEEFAX logo + a big yellow section title on a blue banner
   //   row 3 — white description + the page number in yellow
   // `section` is the big banner title (e.g. a category); `desc` is the row-3 text.
   function renderHeader(page, section, desc) {
@@ -186,12 +189,12 @@
     document.getElementById('header').innerHTML =
       '<div class="ceefax-mast">' +
         '<span class="m-page" id="cx-pagenum">P' + escapeHTML(page) + '</span>' +
-        '<span class="m-service">CEEFAX NMR <span id="cx-svcpage">' + escapeHTML(page) + '</span></span>' +
+        '<span class="m-service">CEEFAX <span id="cx-svcpage">' + escapeHTML(page) + '</span></span>' +
         '<span class="m-date" id="cx-date"></span>' +
         '<span class="ceefax-clock" id="cx-clock"></span>' +
       '</div>' +
       '<div class="ceefax-banner">' +
-        '<a class="ceefax-brand" href="/" aria-label="NMR News — home">' + nmrLogoSVG() + '</a>' +
+        '<a class="ceefax-brand" href="/" aria-label="News — home">' + nmrLogoSVG() + '</a>' +
         '<div class="ceefax-banner-title" id="cx-section">' + escapeHTML(section) + '</div>' +
       '</div>' +
       '<div class="ceefax-subhead">' +

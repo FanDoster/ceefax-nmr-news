@@ -239,7 +239,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 }
 
 /* === HEADER: masthead row (teletext row 0) ===
-   P{n}   CEEFAX NMR {n}   {date}   {clock}  — on black, clock in yellow. */
+   P{n}   CEEFAX {n}   {date}   {clock}  — on black, clock in yellow. */
 .ceefax-mast {
   display: flex;
   align-items: baseline;
@@ -256,7 +256,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 .ceefax-mast .ceefax-clock { color: var(--G); }                 /* green, next to the date */
 
 /* === HEADER: section banner (rows 1-2, double height) ===
-   NMR blocks on the left + a big yellow section title on a blue banner. */
+   CEEFAX logo on the left + a big yellow section title on a blue banner. */
 .ceefax-banner {
   display: flex;
   align-items: stretch;
@@ -346,8 +346,8 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 .mascot-img {
   border: 0;
 }
-/* No More Robots sprout logo (teletext mosaic) — the index-page graphic */
-.sprout-logo {
+/* CEEFAX logo graphic — the index-page hero version */
+.ih-logo .nmr-logo {
   display: block;
   height: 210px;
   width: auto;
@@ -365,7 +365,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   transform-origin: top;
   margin-bottom: var(--cell-h);
 }
-/* NMR block-letter logo (chunky teletext mosaic letters) */
+/* CEEFAX block-letter logo (chunky teletext mosaic letters) */
 .nmr-logo {
   display: block;
 }
