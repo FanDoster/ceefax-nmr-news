@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ceefax-nmr-news.surge.sh/</loc>
+    <loc>https://news.fandoster.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://ceefax-nmr-news.surge.sh/weather.html</loc>
+    <loc>https://news.fandoster.com/weather.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://ceefax-nmr-news.surge.sh/sport.html</loc>
+    <loc>https://news.fandoster.com/sport.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://ceefax-nmr-news.surge.sh/cities.html</loc>
+    <loc>https://news.fandoster.com/cities.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://ceefax-nmr-news.surge.sh/horoscopes.html</loc>
+    <loc>https://news.fandoster.com/horoscopes.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>

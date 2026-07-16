@@ -85,69 +85,45 @@
     return '<svg class="nmr-logo" viewBox="0 0 ' + w + ' 5" shape-rendering="crispEdges" role="img" aria-label="Ceefax">' + rects + '</svg>'
   }
 
-  // The Ceefax brand logo in teletext mosaic: their green sprout
-  // (rasterised from the real logo) with the initials N / M / R stacked beside
-  // it in the header letter colours (cyan / yellow / green). Used as the big
-  // graphic on the index page.
-  function sproutLogoSVG() {
-    // 12x22 mosaic of the sprout ('#' = a lit green block).
-    var SPROUT = [
-      '...###......',
-      '....###..###',
-      '###..##.####',
-      '#####..#####',
-      '######.####.',
-      '.######.....',
-      '..#####.....',
-      '...####.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
-      '......#.....',
+  // The smiling teletext telly mascot in mosaic blocks — a little CRT set
+  // with rabbit ears, its screen showing a happy face in Ceefax blue-and-
+  // yellow. The story-page graphic for stories without an image of their own.
+  function mascotSVG() {
+    var TV = [
+      '..C..........C..',
+      '...C........C...',
+      '....C......C....',
+      '.....C....C.....',
+      '......CCCC......',
+      'WWWWWWWWWWWWWWWW',
+      'W..............W',
+      'W.BBBBBBBBBBBB.W',
+      'W.BBYYBBBBYYBB.W',
+      'W.BBYYBBBBYYBB.W',
+      'W.BBBBBBBBBBBB.W',
+      'W.BYBBBBBBBBYB.W',
+      'W.BBYYYYYYYYBB.W',
+      'W.BBBBBBBBBBBB.W',
+      'W..............W',
+      'WWWWWWWWWWWWWWWW',
+      '..WW........WW..',
     ]
-    var glyphs = {
-      N: ['10001', '11001', '10101', '10011', '10001'],
-      M: ['10001', '11011', '10101', '10001', '10001'],
-      R: ['11110', '10001', '11110', '10010', '10001'],
-    }
-    var G = 'var(--G)', C = 'var(--C)', Y = 'var(--Y)'
-    function block(x, y, fill) {
-      return '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + fill + '"/>'
-    }
+    var COL = { W: 'var(--W)', C: 'var(--C)', B: 'var(--B)', Y: 'var(--Y)' }
     var rects = ''
-    for (var r = 0; r < SPROUT.length; r++) {
-      for (var c = 0; c < SPROUT[r].length; c++) {
-        if (SPROUT[r][c] === '#') rects += block(c, r, G)
+    for (var r = 0; r < TV.length; r++) {
+      for (var c = 0; c < TV[r].length; c++) {
+        var fill = COL[TV[r][c]]
+        if (fill) rects += '<rect x="' + c + '" y="' + r + '" width="1" height="1" fill="' + fill + '"/>'
       }
     }
-    // N / M / R stacked to the right of the sprout, in the header letter colours.
-    var XOFF = 13
-    var letters = [['N', C, 5], ['M', Y, 11], ['R', G, 17]]
-    letters.forEach(function (l) {
-      glyphs[l[0]].forEach(function (row, y) {
-        row.split('').forEach(function (cell, x) {
-          if (cell === '1') rects += block(XOFF + x, l[2] + y, l[1])
-        })
-      })
-    })
-    return '<svg class="sprout-logo" viewBox="0 0 18 22" shape-rendering="crispEdges" ' +
-      'role="img" aria-label="Ceefax">' + rects + '</svg>'
+    return '<svg class="mascot-logo" viewBox="0 0 16 17" shape-rendering="crispEdges" ' +
+      'role="img" aria-label="Teletext telly mascot">' + rects + '</svg>'
   }
 
   // The left-column graphic: the smiling teletext TV mascot with its GOOD NEWS caption.
   function mascotHTML() {
     return '<div class="ceefax-graphic">' +
-      sproutLogoSVG() +
+      mascotSVG() +
       '<div class="mascot-caption">GOOD NEWS</div>' +
       '</div>'
   }
@@ -461,7 +437,7 @@
     delay: delay,
     cachedJSON: cachedJSON,
     nmrLogoSVG: nmrLogoSVG,
-    sproutLogoSVG: sproutLogoSVG,
+    mascotSVG: mascotSVG,
     mascotHTML: mascotHTML,
     renderHeader: renderHeader,
     setDate: setDate,

@@ -271,7 +271,8 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   cursor: pointer;
   flex-shrink: 0;
 }
-.ceefax-banner .nmr-logo { height: 42px; width: auto; margin: 0; }
+/* The CEEFAX wordmark is 7:1, so size by height with room for the title */
+.ceefax-banner .nmr-logo { height: 30px; width: auto; margin: 0; }
 .ceefax-banner-title {
   flex: 1;
   background: var(--B);
@@ -346,11 +347,11 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 .mascot-img {
   border: 0;
 }
-/* CEEFAX logo graphic — the index-page hero version */
-.ih-logo .nmr-logo {
+/* The smiling teletext telly mascot — the story-page fallback graphic */
+.mascot-logo {
   display: block;
-  height: 210px;
-  width: auto;
+  width: 168px;
+  height: auto;
   margin: 6px auto 0;
 }
 /* "GOOD NEWS" caption — authentic teletext double-height text */

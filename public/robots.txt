@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://ceefax-nmr-news.surge.sh/sitemap.xml
+Sitemap: https://news.fandoster.com/sitemap.xml
