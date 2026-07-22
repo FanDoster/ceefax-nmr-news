@@ -47,6 +47,16 @@ html, body {
   border-radius: 16px;
 }
 
+/* === THE CRT PASS ===
+   All the CRT dressing renders as one screen-wide pass in the 950+ band,
+   above EVERYTHING (content, header, graphics, settings UI) — nothing gets
+   to opt out. Page content and chrome stay below 200. Layers, bottom-up:
+     950  scanlines + aperture grille   (toggle: fx-no-scanlines)
+     952  rolling hum bar               (toggle: fx-no-rollbar)
+     954  glass curvature + vignette
+     990  power-on flash
+   All layers are pointer-events: none, so everything stays clickable. */
+
 /* CRT curvature — the bulged-glass read: a deep rounded vignette falloff for
    the light dropping off the curved tube, plus a soft specular sheen across the
    top like a reflection on the glass. Fixed overlay, above content, click-through. */
@@ -55,7 +65,7 @@ html, body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 151;   /* above all UI (header, FASTEXT) so the whole screen curves */
+  z-index: 954;   /* the glass sits in front of the whole picture */
   background:
     /* specular sheen — light glancing off the curved glass */
     radial-gradient(70% 55% at 50% 6%,
@@ -72,15 +82,14 @@ html, body {
 
 /* CRT shadow mask — horizontal scanlines + a vertical RGB aperture grille, the
    two together giving the phosphor-screen look. One fixed, viewport-covering
-   overlay above ALL UI (header, FASTEXT footer, everything) so the scanlines
-   apply globally rather than being patched onto individual sections.
-   pointer-events: none keeps everything underneath clickable. */
+   overlay in the CRT pass, so the scanlines apply globally rather than being
+   patched onto (or ducked by) individual sections. */
 .ceefax-page::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 150;
+  z-index: 950;
   background-image:
     /* scanlines (darken every other row) */
     repeating-linear-gradient(
@@ -92,14 +101,15 @@ html, body {
     );
   mix-blend-mode: multiply;
 }
-/* Aperture grille — 1px red / green / blue phosphor columns. Its own overlay
-   (not part of the scanline mask) so the COLOUR FRINGING toggle controls it. */
+/* Aperture grille — 1px red / green / blue phosphor columns. Part of the
+   shadow-mask look, so the SCANLINES toggle turns it off together with the
+   scanline rows. */
 html::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 150;
+  z-index: 950;
   background-image:
     repeating-linear-gradient(
       to right,
@@ -121,7 +131,7 @@ body::after {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 200;
+  z-index: 990;
   background: #fff;
   transform-origin: center;
   opacity: 0;
@@ -147,13 +157,13 @@ html.crt-boot .ceefax-page {
 }
 
 /* CRT hum bar — a faint bright band drifting slowly down the screen, like the
-   rolling interference on an old set. Above the UI too, so it sweeps the whole screen. */
+   rolling interference on an old set. Part of the CRT pass, sweeping everything. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 152;
+  z-index: 952;
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0) 0%,
@@ -176,7 +186,8 @@ body::before {
 
 /* === DISPLAY SETTINGS — user toggles for the CRT dressing ===
    common.js sets these classes on <html> from saved preferences. */
-html.fx-no-scanlines .ceefax-page::after { display: none; }   /* scanlines off */
+html.fx-no-scanlines .ceefax-page::after,
+html.fx-no-scanlines::after { display: none; }                /* scanlines + grille off */
 html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 
 /* The discrete gear — a small SET tab tucked above the FASTEXT bar. */
@@ -184,7 +195,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   position: fixed;
   right: 8px;
   bottom: 34px;
-  z-index: 160;
+  z-index: 110;   /* above the FASTEXT bar; under the CRT pass like everything else */
   font: inherit;
   font-size: 11px;
   letter-spacing: 1px;
@@ -201,7 +212,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   position: fixed;
   right: 8px;
   bottom: 62px;
-  z-index: 165;
+  z-index: 115;
   width: 252px;
   background: var(--K);
   border: 2px solid var(--C);
@@ -232,9 +243,8 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 #header, .wx-header {
   position: sticky;
   top: 0;
-  /* above the scanline overlay (150) and the raised graphics (155) so its own
-     logo image is crisp and scrolling graphics tuck underneath it */
-  z-index: 158;
+  /* above the fixed graphics column so scrolling graphics tuck underneath it */
+  z-index: 20;
   background: var(--K);
 }
 
@@ -336,7 +346,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
   margin-left: -306px;   /* -(640/2) + 14 */
   width: 192px;
   image-rendering: pixelated;
-  z-index: 155;   /* above the scanline/CRT overlays so the graphic stays crisp */
+  z-index: 10;   /* above scrolling content, below the sticky header; the CRT pass draws over it */
 }
 .ceefax-graphic img,
 .ceefax-graphic canvas {
