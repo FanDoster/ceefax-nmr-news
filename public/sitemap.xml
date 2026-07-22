@@ -11,6 +11,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://news.fandoster.com/sport.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://news.fandoster.com/cities.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>

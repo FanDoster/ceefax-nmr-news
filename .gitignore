@@ -26,3 +26,6 @@ dist-ssr
 
 # Claude Code local session files (preview launch config, etc.)
 .claude/
+
+# Local sport-data output (prod copy lives on the server, not in the image)
+public/data/

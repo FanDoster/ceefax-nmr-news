@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEEFAX NEWS — P300 SPORT</title>
+  <meta name="description" content="Football in Ceefax teletext — headlines, the top of the table, fixtures and results. P300." />
+  <link rel="canonical" href="https://news.fandoster.com/sport.html" />
+  <meta name="theme-color" content="#000000" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Ceefax News" />
+  <meta property="og:title" content="CEEFAX — SPORT P300" />
+  <meta property="og:description" content="Football in Ceefax teletext — headlines, table, fixtures and results." />
+  <meta property="og:url" content="https://news.fandoster.com/sport.html" />
+  <meta property="og:image" content="https://news.fandoster.com/images/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Ceefax News — Good News in Games" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CEEFAX — SPORT P300" />
+  <meta name="twitter:description" content="Football in Ceefax teletext — headlines, table, fixtures and results." />
+  <meta name="twitter:image" content="https://news.fandoster.com/images/og-card.png" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%205%205%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%221%22%20y%3D%220%22%20width%3D%223%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%224%22%20width%3D%223%22%20height%3D%221%22%20fill%3D%22%2300FFFF%22%2F%3E%3C%2Fsvg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .sp-sec { color: var(--C); font-size: var(--font-size); line-height: var(--cell-h); margin: 14px 0 4px; }
+    .sp-sec:first-child { margin-top: 0; }
+    .sp-line { color: var(--W); font-size: var(--font-size); line-height: var(--cell-h); margin-bottom: 6px; }
+    .sp-row { display: flex; align-items: baseline; gap: 8px; font-size: var(--font-size); line-height: var(--cell-h); }
+    .sp-row .pos { color: var(--W); width: 2ch; text-align: right; flex-shrink: 0; }
+    .sp-row .team { color: var(--C); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .sp-row .num { color: var(--Y); width: 3ch; text-align: right; flex-shrink: 0; }
+    .sp-row .date { color: var(--G); width: 11ch; flex-shrink: 0; }
+    .sp-row .score { color: var(--Y); flex-shrink: 0; }
+    .sp-updated { color: var(--G); font-size: 14px; margin-top: 16px; }
+    .sp-msg { color: var(--Y); padding: 24px 0; font-size: var(--font-size); line-height: var(--cell-h); }
+  </style>
+</head>
+<body>
+  <div class="ceefax-page">
+    <div id="header"></div>
+    <div class="ceefax-content" id="content">
+      <div class="ceefax-text" id="sp-main"><div class="ceefax-loading">LOADING...</div></div>
+    </div>
+    <div class="ceefax-fastext" id="fastext"></div>
+  </div>
+
+  <!-- No Supabase — sport data comes from /data/sport.json, written by a
+       local cron job on the server (jobs/update_sport.py). -->
+  <script src="/common.js"></script>
+  <script>
+    CX.renderHeader('300', 'SPORT', 'FOOTBALL — HEADLINES & TABLE')
+    var stopScan = CX.scanPage('300')
+
+    // Left-column graphic: a teletext football with its caption.
+    ;(function () {
+      var BALL = [
+        '.....WWWWWWW.....',
+        '...WWWWWWWWWWW...',
+        '..WWWWWKKKWWWWW..',
+        '.WWWWWWKKKWWWWWW.',
+        '.WWWWWWWKWWWWWWW.',
+        'WWKKWWWWKWWWWKKWW',
+        'WKKKWWWKKKWWWKKKW',
+        'WKKKWWWWKWWWWKKKW',
+        'WWKKWWWWKWWWWKKWW',
+        '.WWWWWKKKKKWWWWW.',
+        '.WWWWKKWWWKKWWWW.',
+        '..WWWWWWWWWWWWW..',
+        '...WWWWWWWWWWW...',
+        '.....WWWWWWW.....',
+      ]
+      var COL = { W: 'var(--W)', K: '#111111' }
+      var rects = ''
+      for (var r = 0; r < BALL.length; r++) {
+        for (var c = 0; c < BALL[r].length; c++) {
+          var col = COL[BALL[r][c]]
+          if (col) rects += '<rect x="' + c + '" y="' + r + '" width="1" height="1" fill="' + col + '"/>'
+        }
+      }
+      document.getElementById('content').insertAdjacentHTML('afterbegin',
+        '<div class="ceefax-graphic">' +
+        '<svg viewBox="0 0 17 14" shape-rendering="crispEdges" role="img" aria-label="Football" ' +
+        'style="display:block;width:150px;margin:10px auto 0">' + rects + '</svg>' +
+        '<div class="mascot-caption">FOOTBALL</div></div>')
+    })()
+
+    function esc(s) { return CX.escapeHTML(String(s || '')) }
+
+    // '2026-08-21' -> 'FRI 21 AUG'
+    function niceDate(iso) {
+      var t = new Date(iso + 'T12:00:00Z')
+      if (isNaN(t.getTime())) return iso
+      return t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+        .replace(/,/g, '').toUpperCase()
+    }
+
+    function render(d) {
+      var h = ''
+      if (d.headlines) {
+        h += '<div class="ceefax-hl-cyan">FOOTBALL</div>'
+        d.headlines.slice(0, 6).forEach(function (t) { h += '<div class="sp-line">' + esc(t) + '</div>' })
+      }
+      if (d.table) {
+        h += '<div class="sp-sec">TOP OF THE TABLE &mdash; ' + esc(d.table.season.replace('-', '/')) + '</div>'
+        d.table.rows.forEach(function (r) {
+          h += '<div class="sp-row"><span class="pos">' + r.rank + '</span>' +
+            '<span class="team">' + esc(r.team) + '</span>' +
+            '<span class="num">' + r.points + '</span></div>'
+        })
+      }
+      if (d.fixtures) {
+        h += '<div class="sp-sec">FIXTURES</div>'
+        d.fixtures.forEach(function (f) {
+          h += '<div class="sp-row"><span class="date">' + niceDate(f.date) + '</span>' +
+            '<span class="team">' + esc(f.home) + ' v ' + esc(f.away) + '</span></div>'
+        })
+      }
+      if (d.results) {
+        h += '<div class="sp-sec">RESULTS</div>'
+        d.results.forEach(function (r) {
+          h += '<div class="sp-row"><span class="date">' + niceDate(r.date) + '</span>' +
+            '<span class="team">' + esc(r.home) + ' ' + r.hs + '-' + r['as'] + ' ' + esc(r.away) + '</span></div>'
+        })
+      }
+      if (!h) return offAir()
+      if (d.updated) {
+        var u = new Date(d.updated)
+        if (!isNaN(u.getTime())) {
+          var hh = ('0' + u.getHours()).slice(-2) + ':' + ('0' + u.getMinutes()).slice(-2)
+          h += '<div class="sp-updated">UPDATED ' + hh + '</div>'
+          CX.setStatus('FOOTBALL — UPDATED ' + hh)
+        }
+      }
+      document.getElementById('sp-main').innerHTML = h
+    }
+
+    function offAir() {
+      document.getElementById('sp-main').innerHTML =
+        '<div class="ceefax-hl-cyan">SPORT</div>' +
+        '<div class="sp-msg">SPORT DATA IS OFF AIR.<br><br>The results service has not been ' +
+        'updated yet &mdash; please retune later.</div>'
+    }
+
+    fetch('/data/sport.json', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json() })
+      .then(render)
+      .catch(offAir)
+      .finally(function () { stopScan() })
+
+    CX.renderFastext([
+      { color: 'red',    label: 'HEADLINES', href: '/' },
+      { color: 'green',  label: 'WEATHER',   href: '/weather.html' },
+      { color: 'yellow', label: 'STARS',     href: '/horoscopes.html' },
+      { color: 'cyan',   label: 'CITIES',    href: '/cities.html' },
+    ])
+  </script>
+</body>
+</html>

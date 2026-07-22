@@ -384,6 +384,7 @@ html.fx-no-rollbar body::before { display: none; }            /* hum bar off */
 /* Text column (right) */
 .ceefax-text {
   flex: 1;
+  min-width: 0;   /* let long unbreakable lines shrink-wrap instead of overflowing the page */
   padding-left: 20px;
   font-size: var(--font-size);
   line-height: var(--cell-h);
