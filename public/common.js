@@ -28,7 +28,7 @@
   function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms) }) }
 
   // Fetch JSON with a short-lived localStorage cache so re-opening or
-  // refreshing a page (weather / sport / cities) doesn't re-hit the API every
+  // refreshing a page (weather / cities) doesn't re-hit the API every
   // time. Falls back to a live fetch if the cache is stale, missing, or
   // unavailable; serves a stale copy if the network fails.
   function cachedJSON(url, ttlMs, opts) {
@@ -237,8 +237,6 @@
   function pageURL(n) {
     if (n === 100) return '/'
     if (n === 199) return '/admin.html'
-    if (n === 300) return '/sport.html'
-    if (n > 300 && n <= 349) return '/sport.html?p=' + n
     if (n === 401) return '/weather.html'
     if (n === 402) return '/cities.html'
     if (n === 560) return '/horoscopes.html'
